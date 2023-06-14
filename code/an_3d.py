@@ -188,7 +188,7 @@ def vec_iteration(vec, D, v):
 
 def vec_iteration2(p):
 
-    print(p.D, p.v, p.vec)
+    print(p['D'], p['v'], p['vec'])
     return vec_iteration(vec=p['vec'], D=p['D'], v=p['v'])
 
 # prepare parameters
