@@ -3,13 +3,14 @@ import os
 import pathlib as pa
 progspath = pa.Path(__file__).absolute().parents[2]
 sys.path.append(str(progspath / 'mytools'))
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import tools as tls
 import numpy as np
 import dm_tools as dmt
 import scipy.optimize as scp
 import time
 import decimal as dec
+import multiprocessing
 
 etaum = 0
 
@@ -150,46 +151,56 @@ vecs = [   [-1,-1,-1],
 #vecs = [[-1,-1,-1]]
 #vecs = vecs[::-1]
 #Ds = [50*v]
-#Ds = [100*v]
 Ds = [ 50*v, 100*v, 150*v]
-#Ds = [20*v, 50*v]
-#Ds = [150*v, 100*v]
 
 mjds_dict ={
     'c1' : np.arange(58658,58670 ,0.00005),  #co ok 4s
     'c2' : np.arange(58916,58935 ,0.00005)  #co ok 4s
+    #'c2' : np.arange(58917.8,58917.9 ,0.00005)  #co ok 4s  temporary
 }
 mjds = mjds_dict[camp]
+
+def vec_iteration(vec, D, v):
+    #start = time.time()
+    #print(D, vec)
+    mjd_t = []
+    out_t = []
+    err_t = []
+    err2_t = []
+    clocks_t = []
+    for mjd in mjds:
+        w = calc_single(mjd, v, D, vec)
+        if w!=None:
+            mjd_t.append(mjd)
+            out_t.append(w[0])
+            err_t.append(w[1])
+            err2_t.append(w[2])
+            clocks_t.append(w[3])
+            #print(int(D/v), vec, mjd, ' -> ', w[0], w[1], w[3], flush=True)
+    fname = 'D'+str(int(D/v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
+    outdat = np.column_stack((  np.array(mjd_t),np.array(out_t),
+                                np.array(err_t),np.array(err2_t),
+                                np.array(clocks_t)  ))
+    np.save(os.path.join(progspath,'DMAnaliza',
+            'out','out50'+camp+'_'+fname),outdat)
+    #print('time [min]: ',(time.time()-start)/60.)
+    return 0
+
+def vec_iteration2(vec):
+    print(D_glob, v_glob)
+    return vec_iteration(vec, D_glob, v_glob)
+
 # loop -----------------------------------
+time_all_start = time.time()
 for D in Ds:
-    for vec in vecs:
-        start = time.time()
-        #print(D, vec)
-        mjd_t = []
-        out_t = []
-        err_t = []
-        err2_t = []
-        clocks_t = []
-        #mjds = np.arange(58658,58670 ,0.00001*(D/v)/5.)
-        for mjd in mjds:
-            w = calc_single(mjd, v, D, vec)
-            #print(w)
-            if w!=None:
-                mjd_t.append(mjd)
-                out_t.append(w[0])
-                err_t.append(w[1])
-                err2_t.append(w[2])
-                clocks_t.append(w[3])
-                print(int(D/v), vec, mjd, ' -> ', w[0], w[1], w[3])
-        #plt.plot(mjd_t, out_t, mjd_t, err_t)
-        #plt.show()
-        fname = 'D'+str(int(D/v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
-        outdat = np.column_stack((  np.array(mjd_t),np.array(out_t),
-                                    np.array(err_t),np.array(err2_t),
-                                    np.array(clocks_t)  ))
-        print(outdat[1][1])
-        np.save(os.path.join(progspath,'DMAnaliza','code',
-                'out','out100'+camp,fname),outdat)
-        print('time [min]: ',(time.time()-start)/60.)
+    D_glob = D
+    v_glob = v
+    with multiprocessing.Pool() as pool:
+        pool.map(vec_iteration2, vecs)
+
+f = open(os.path.join(progspath,'DMAnaliza',
+            'out','time.dat'), 'a')
+f.write(f"\n{(time.time()-time_all_start)/60.} min")
+f.close()
 # ----------------------------------------
 
