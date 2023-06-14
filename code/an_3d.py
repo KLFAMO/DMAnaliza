@@ -186,17 +186,22 @@ def vec_iteration(vec, D, v):
     #print('time [min]: ',(time.time()-start)/60.)
     return 0
 
-def vec_iteration2(vec):
-    print(D_glob, v_glob)
-    return vec_iteration(vec, D_glob, v_glob)
+def vec_iteration2(p):
+
+    print(p.D, p.v, p.vec)
+    return vec_iteration(vec=p['vec'], D=p['D'], v=p['v'])
+
+# prepare parameters
+params = []
+for D in Ds:
+    for vec in vecs:
+        params.append({'D':D, 'v':v, 'vec':vec})
+
 
 # loop -----------------------------------
 time_all_start = time.time()
-for D in Ds:
-    D_glob = D
-    v_glob = v
-    with multiprocessing.Pool() as pool:
-        pool.map(vec_iteration2, vecs)
+with multiprocessing.Pool() as pool:
+    pool.map(vec_iteration2, params)
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
