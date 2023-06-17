@@ -150,13 +150,13 @@ vecs = [   [-1,-1,-1],
       [1,-1,-1], [1,-1,0], [1,-1,1], [1,0,-1], [1,0,0], [1,0,1], [1,1,-1], [1,1,0], [1,1,1]  ]
 #vecs = [[-1,-1,-1]]
 #vecs = vecs[::-1]
-Ds = [50*v]
-#Ds = [ 50*v, 100*v, 150*v]
+#Ds = [50*v]
+Ds = [ 50*v, 100*v, 150*v]
 
 mjds_dict ={
     'c1' : np.arange(58658,58670 ,0.00005),  #co ok 4s
-    #'c2' : np.arange(58916,58935 ,0.00005)  #co ok 4s
-    'c2' : np.arange(58917.8,58917.9 ,0.00005)  #co ok 4s  temporary
+    'c2' : np.arange(58916,58935 ,0.00005)  #co ok 4s
+    #'c2' : np.arange(58917.8,58917.9 ,0.00005)  #co ok 4s  temporary
 }
 mjds = mjds_dict[camp]
 
@@ -172,9 +172,10 @@ for D in Ds:
     for vec in vecs:
         start = time.time()
         params = [{'mjd':mjd, 'D':D, 'v':v, 'vec':vec} for mjd in mjds]
-        #with multiprocessing.Pool() as pool:
-        #    out = pool.map(calc_for_single_mjd, params)
-        out = [calc_for_single_mjd(p) for p in params]        
+        with multiprocessing.Pool() as pool:
+            out = pool.map(calc_for_single_mjd, params)
+        #out = [calc_for_single_mjd(p) for p in params]
+        out = [ x for x in out if x!=None]       
         fname = 'D'+str(int(D/v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
         outdat = np.array(out)
         np.save(os.path.join(progspath,'DMAnaliza',
