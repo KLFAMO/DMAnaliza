@@ -97,7 +97,9 @@ def calc_single(mjd, v, D, vec):
 
 d = dict()
 for lab in par.labs:
-    #print('\n'+lab)
+    print('\n'+lab)
+    print( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) )
+    print(os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ))
     if os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ):
         d[lab] = tls.MTSerie(lab, color=par.inf[lab]['col'])
         d[lab].add_mjdf_from_file(
@@ -109,6 +111,8 @@ for lab in par.labs:
         d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
         #sd[par.lnum[lab]]=d[lab].std()
 
+print('d: ',d)
+
 # loop prameters----------------------
 
 def calc_for_single_mjd(p):
@@ -118,16 +122,64 @@ def calc_for_single_mjd(p):
     else:
         return None
 
+def calc_results_for_length(out, D, length_mjd):
+    """
+    calculate results from campaign for single set of parameters
+
+    """
+    outarr = np.array(out)
+    
+    m = outarr[:,0]
+    v = np.abs(outarr[:,1])
+
+    last_mjd = m[0]
+    mgap = (float(D)/86400)*0.5
+
+    min_maxv = 1e6
+    lenm = len(m)
+    i=0
+    while i < lenm-1:
+        x = i
+        start = m[i]
+        last_mjd = start
+        maxv = v[i]
+        state = 1
+        #print(m[i], min_maxv)
+        while m[x]-start < length_mjd:
+            if m[x]-last_mjd > mgap:
+                state = 0
+                break
+            if v[x] > maxv:
+                maxv = v[x]
+            last_mjd = m[x]
+            x = x+1
+            if x>=lenm-1:
+                state = 0
+                break
+
+        if min_maxv > maxv and state==1:
+            min_maxv = maxv
+        
+        while m[i]-start < mgap:
+            i=i+1
+            if i >= lenm-1:
+                break
+    print('D ',D,', length ',length_mjd, ', val ',min_maxv)
+
+
 time_all_start = time.time()
 for D in par.Ds:
     for vec in par.vecs:
+        print(D, vec)
         start = time.time()
         params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':vec} for mjd in par.mjds]
-        with multiprocessing.Pool() as pool:
-            out = pool.map(calc_for_single_mjd, params)
-        #out = [calc_for_single_mjd(p) for p in params]
+        #with multiprocessing.Pool() as pool:
+        #    out = pool.map(calc_for_single_mjd, params)
+        out = [calc_for_single_mjd(p) for p in params]
         out = [ x for x in out if x!=None]       
         fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
+        if out:
+            calc_results_for_length(out, D, 0.1)
         outdat = np.array(out)
         np.save(os.path.join(progspath,'DMAnaliza',
                     'out','out50'+par.camp+'_'+fname),outdat)
