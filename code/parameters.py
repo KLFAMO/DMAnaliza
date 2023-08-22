@@ -1,3 +1,4 @@
+import numpy as np
 
 labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS']
 
@@ -15,3 +16,24 @@ inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5
 
 lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
         'NICT':5, 'SYRTE':6, 'NMIJ':7, 'KRISS':8, 'PTB':9}
+
+# calc loop parameters
+v = 300000  # m/s   - speed of the Earth in space
+vecs = [   [-1,-1,-1],
+        [-1,-1,0], [-1,-1,1], [-1,0,-1], [-1,0,0], [-1,0,1], [-1,1,-1], [-1,1,0], [-1,1,1], 
+      [0,-1,-1], [0,-1,0], [0,-1,1], [0,0,-1], [0,0,0], [0,0,1], [0,1,-1], [0,1,0], [0,1,1],
+      [1,-1,-1], [1,-1,0], [1,-1,1], [1,0,-1], [1,0,0], [1,0,1], [1,1,-1], 
+      [1,1,0], [1,1,1], 
+]
+vecs = [vecs[0]]
+
+Ds = [ 50*v, 100*v, 150*v]
+
+camp = 'cx'
+
+mjds_dict ={
+    'c1' : np.arange(58658,58670 ,0.00005),  #co ok 4s
+    'c2' : np.arange(58916,58935 ,0.00005),  #co ok 4s
+    'cx' : np.arange(58917.8,58917.85 ,0.00005),  # for fast tests
+}
+mjds = mjds_dict[camp]
