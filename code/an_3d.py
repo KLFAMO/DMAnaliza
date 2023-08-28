@@ -111,8 +111,6 @@ for lab in par.labs:
         d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
         #sd[par.lnum[lab]]=d[lab].std()
 
-print('d: ',d)
-
 # loop prameters----------------------
 
 def calc_for_single_mjd(p):
@@ -133,7 +131,7 @@ def calc_results_for_length(out, D, length_mjd):
     v = np.abs(outarr[:,1])
 
     last_mjd = m[0]
-    mgap = (float(D)/86400)*0.5
+    mgap = (float(D/par.v)/86400)*0.5
 
     min_maxv = 1e6
     lenm = len(m)
@@ -164,27 +162,31 @@ def calc_results_for_length(out, D, length_mjd):
             i=i+1
             if i >= lenm-1:
                 break
-    print('D ',D,', length ',length_mjd, ', val ',min_maxv)
+    # print('D ',D/par.v,', length ',length_mjd, ', val ',min_maxv)
+    maxvs.append([D/par.v, min_maxv, length_mjd])
 
-
+maxvs = []
 time_all_start = time.time()
 for D in par.Ds:
     for vec in par.vecs:
-        print(D, vec)
-        start = time.time()
+        # start = time.time()
         params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':vec} for mjd in par.mjds]
-        #with multiprocessing.Pool() as pool:
-        #    out = pool.map(calc_for_single_mjd, params)
-        out = [calc_for_single_mjd(p) for p in params]
-        out = [ x for x in out if x!=None]       
-        fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
+        with multiprocessing.Pool() as pool:
+            out = pool.map(calc_for_single_mjd, params)
+        # out = [calc_for_single_mjd(p) for p in params]
+        out = [ x for x in out if x!=None]      
         if out:
             calc_results_for_length(out, D, 0.1)
-        outdat = np.array(out)
-        np.save(os.path.join(progspath,'DMAnaliza',
-                    'out','out50'+par.camp+'_'+fname),outdat)
-        print('time [min]: ',(time.time()-start)/60.)
+        if par.save_mjd_calcs: 
+            fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
+            outdat = np.array(out)
+            np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50'+par.camp+'_'+fname), outdat)
+        # print('time [min]: ',(time.time()-start)/60.)
 
+print(maxvs)
+out_maxvs = np.array(maxvs)
+np.save('maxvs_'+par.camp+'.npy', maxvs)
+np.savetxt('maxvs_'+par.camp+'.txt', maxvs)
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
