@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-camp = 'c1'
+camp = 'c2'
 
 data = np.load('maxvs_'+camp+'.npy')
 plt.plot(data[:,0],data[:,1]*1e-18)
