@@ -30,7 +30,7 @@ vecs = [ [-1,-1,-1], ]
 #Ds = [ 20*v, 50*v, 100*v, 150*v]
 Ds = [ x*v for x in range(10,301)]
 
-camp = 'c1'
+camp = 'c2'
 
 mjds_dict ={
     'c1' : np.arange(58658,58670 ,0.00005),  #co ok 4s

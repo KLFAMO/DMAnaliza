@@ -6,10 +6,8 @@ sys.path.append(str(progspath / 'mytools'))
 
 import tools as tls
 import numpy as np
-import dm_tools as dmt
 import scipy.optimize as scp
 import time
-import decimal as dec
 import multiprocessing
 
 import parameters as par
@@ -17,7 +15,7 @@ import parameters as par
 etaum = 0
 
 # 0: K, 1: std
-sd = [0,0,0,0,0,0,0,0,0]
+sd = [0]*len(par.labs)
 
 def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
