@@ -59,3 +59,15 @@ x, y, z = gps2ecef(long, lat, h)
 print("X:", x)
 print("Y:", y)
 print("Z:", z)
+
+print('\nPTB')
+print(gps2ecef(10.459046, 52.295024, 50))
+
+print('\nKRISS')
+print(gps2ecef(127.372131, 36.387554, 50))
+
+print('\nNMIJ')
+print(gps2ecef(140.099934, 36.112252, 50))
+
+print('\nSYRTE')
+print(gps2ecef(2.334838, 48.835866, 50))
