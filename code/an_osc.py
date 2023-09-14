@@ -10,35 +10,12 @@ import dm_tools as dmt
 import scipy.optimize as scp
 import time
 import decimal as dec
+import parameters as par
 
 etaum = 0
 
-#labs = ['UMK1','UMK2', 'NIST', 'NPLSr', 'NPLYb', 'NICT', 'SYRTE']
-labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT']
-#labs = ['NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT']
-#labs = ['NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT']
-#labs = ['NPLSr', 'NPLYb', 'NIST']
-inf = { 'UMK1': {'col':'green', 'atom':'88Sr',
-                 'X':3644273,  'Y':1226649,  'Z':5071736}, 
-        'UMK2': {'col':'red',   'atom':'88Sr',
-                 'X':3644273,  'Y':1226649,  'Z':5071736},
-        'NIST': {'col':'blue',  'atom':'171Yb',
-                 'X':-1288363, 'Y':-4721684, 'Z':4078659},
-        'NPLSr':{'col':'cyan',  'atom':'87Sr',
-                 'X':3985500,  'Y':-23625,   'Z':4962941},
-        'NPLYb':{'col':'black', 'atom':'171Yb+',
-                 'X':3985500,  'Y':-23625,   'Z':4962941},
-        'NICT': {'col':'gray',  'atom':'87Sr',
-                 'X':-3941931, 'Y':3368182,  'Z':3702068},
-        'SYRTE':{'col':'brown', 'atom':'87Sr',
-                 'X':4202777,  'Y':171368,   'Z':4778660}
-}
-
-lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
-        'NICT':5, 'SYRTE':6}
-
 # 0: K, 1: std
-sd = [0,0,0,0,0,0,0]
+sd = [0]*len(par.labs)
 
 def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
@@ -64,7 +41,6 @@ def calc_single(mjd, om):
     global etaum
     global sd
 
-    
     etau = om  # rad/s
     etaum = etau*86400
     end_mjd = mjd+0.05
@@ -75,20 +51,20 @@ def calc_single(mjd, om):
     cnt = 0
     clocks = 0
     # capture data for labs for given mjd, v, D, vec
-    for lab in labs:
-        #print('Lab: ',lab)
-        s = d[lab].getrange(mjd,end_mjd)
-        
-        if s != None and len(s.dtab)==1:
-            if s.dtab[0].mjd_tab[-1]-s.dtab[0].mjd_tab[0] >= 0.95*durm:
-                #s.rm_dc()
-                s.rm_drift_each()
-                #s.plot()
-                datx.append(s.mjd_tab() - (mjd) + lnum[lab])
-                daty.append(s.val_tab())
-                cnt = cnt+1
-                clocks = clocks + (1 << lnum[lab])
-                sd[lnum[lab]]=s.std()
+    for lab in par.labs:
+        if lab in d.keys():
+            s = d[lab].getrange(mjd,end_mjd)
+            
+            if s != None and len(s.dtab)==1:
+                if s.dtab[0].mjd_tab[-1]-s.dtab[0].mjd_tab[0] >= 0.95*durm:
+                    #s.rm_dc()
+                    s.rm_drift_each()
+                    #s.plot()
+                    datx.append(s.mjd_tab() - (mjd) + par.lnum[lab])
+                    daty.append(s.val_tab())
+                    cnt = cnt+1
+                    clocks = clocks + (1 << par.lnum[lab])
+                    sd[par.lnum[lab]]=s.std()
 
     if cnt>2:
             datx = np.concatenate(datx)
@@ -113,17 +89,21 @@ def calc_single(mjd, om):
 
 #reading data from npy files "data/d_prepared/d_x.npy"
 d = dict()
-for lab in labs:
-    #print('\n'+lab)
-    d[lab] = tls.MTSerie(lab, color=inf[lab]['col'])
-    d[lab].add_mjdf_from_file(
-           str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'.npy') )   )
-    d[lab].split(min_gap=12)
-    #d[lab].rm_dc_each()
-    #d[lab].high_gauss_filter_each(stddev=350)
-    #d[lab].rm_drift_each()
-    d[lab].alphnorm(atom=inf[lab]['atom'])  #convert AOM freq to da/a
-    #sd[lnum[lab]]=d[lab].std()
+for lab in par.labs:
+    print('\n'+lab)
+    print( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) )
+    print(os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ))
+    if os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ):
+        #print('\n'+lab)
+        d[lab] = tls.MTSerie(lab, color=par.inf[lab]['col'])
+        d[lab].add_mjdf_from_file(
+            str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') )   )
+        d[lab].split(min_gap=12)
+        #d[lab].rm_dc_each()
+        #d[lab].high_gauss_filter_each(stddev=350)
+        #d[lab].rm_drift_each()
+        d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
+        #sd[lnum[lab]]=d[lab].std()
 
 # loop prameters----------------------
 
@@ -143,7 +123,6 @@ for Om in Oms:
         #mjds = np.arange(58658,58670 ,0.01)
         for mjd in mjds:
             w = calc_single(mjd, Om)
-            #print(w)
             if w!=None:
                 mjd_t.append(mjd)
                 out_t.append(w[0])
@@ -152,15 +131,14 @@ for Om in Oms:
                 clocks_t.append(w[3])
                 print(Om, mjd, ' -> ', w[0], w[1], w[3])
         print(max(np.abs(out_t)), min(np.abs(out_t)) )
-        plt.plot(mjd_t, out_t, mjd_t, err_t)
-        plt.show()
+        # plt.plot(mjd_t, out_t, mjd_t, err_t)
+        # plt.show()
         fname = 'Om'+str(Om)+'.npy'
         outdat = np.column_stack((  np.array(mjd_t),np.array(out_t),
                                     np.array(err_t),np.array(err2_t),
                                     np.array(clocks_t)  ))
         print(outdat[1][1])
-        np.save(os.path.join(progspath,'DMAnaliza','code',
+        np.save(os.path.join(progspath,'DMAnaliza',
                 'out','out03',fname),outdat)
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
-
