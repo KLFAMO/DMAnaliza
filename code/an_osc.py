@@ -1,7 +1,6 @@
 import sys
 import os
-import pathlib as pa
-progspath = pa.Path(__file__).absolute().parents[2]
+from local_settings import progspath
 sys.path.append(str(progspath / 'mytools'))
 import matplotlib.pyplot as plt
 import tools as tls
@@ -33,15 +32,11 @@ def vmul(a,b):
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
 
 def calc_single(mjd, om):
-    """
-    v - speed
-    D - size
-    vec - direction
-    """
+   
     global etaum
     global sd
 
-    etau = om  # rad/s
+    etau = 10/om  # rad/s
     etaum = etau*86400
     end_mjd = mjd+0.05
     durm = end_mjd-mjd
@@ -50,7 +45,7 @@ def calc_single(mjd, om):
 
     cnt = 0
     clocks = 0
-    # capture data for labs for given mjd, v, D, vec
+    # capture data for labs for given mjd, om
     for lab in par.labs:
         if lab in d.keys():
             s = d[lab].getrange(mjd,end_mjd)
@@ -87,11 +82,10 @@ def calc_single(mjd, om):
     else:
             return None
 
-#reading data from npy files "data/d_prepared/d_x.npy"
+#reading data from npy files
 d = dict()
 for lab in par.labs:
     print('\n'+lab)
-    print( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) )
     print(os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ))
     if os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ):
         #print('\n'+lab)
@@ -105,22 +99,20 @@ for lab in par.labs:
         d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
         #sd[lnum[lab]]=d[lab].std()
 
-# loop prameters----------------------
 
 #Oms = [0.1, 0.01, 0.001]
 Oms = [ 0.02, 0.002]
+Oms = np.arange(0.001, 0.1, 0.01)
+outs = []
 
-mjds = np.arange(58658,58660 ,0.005)  #co ok 4s
-# loop -----------------------------------
+mjds = np.arange(58658,58670 ,0.005)  #co ok 4s
 for Om in Oms:
         start = time.time()
-        #print(D, vec)
         mjd_t = []
         out_t = []
         err_t = []
         err2_t = []
         clocks_t = []
-        #mjds = np.arange(58658,58670 ,0.01)
         for mjd in mjds:
             w = calc_single(mjd, Om)
             if w!=None:
@@ -129,16 +121,21 @@ for Om in Oms:
                 err_t.append(w[1])
                 err2_t.append(w[2])
                 clocks_t.append(w[3])
-                print(Om, mjd, ' -> ', w[0], w[1], w[3])
-        print(max(np.abs(out_t)), min(np.abs(out_t)) )
-        # plt.plot(mjd_t, out_t, mjd_t, err_t)
-        # plt.show()
-        fname = 'Om'+str(Om)+'.npy'
-        outdat = np.column_stack((  np.array(mjd_t),np.array(out_t),
-                                    np.array(err_t),np.array(err2_t),
-                                    np.array(clocks_t)  ))
-        print(outdat[1][1])
-        np.save(os.path.join(progspath,'DMAnaliza',
-                'out','out03',fname),outdat)
+                # print(Om, mjd, ' -> ', w[0], w[1], w[3])
+        # print(max(np.abs(out_t)), min(np.abs(out_t)) )
+        
+        Ts = 10
+        tosc = 1./Om
+
+        outs.append([Om, max(np.abs(out_t)),  min(np.abs(out_t)), ])
+        npout = np.array(outs)
+        np.save('osc.npy', npout)
+        np.savetxt('osc.txt', npout)
+        
+        plt.plot(npout[:,0], npout[:,1]*1e-18)
+        plt.yscale('log')
+        plt.grid()
+        plt.savefig('osc.png')
+
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
