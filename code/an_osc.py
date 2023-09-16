@@ -19,13 +19,31 @@ def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
 
 def f(x,A,sh):   
-    ts = 8640       #1/ (10s / 86400 )
     global etaum
     rx = int(x)
-    return A*np.sin(etaum*(x-rx)+sh)
+    return A*np.sin(etaum*(x-rx)+sh)*ssf_osc(Om)
 
 def sigf(dx):
     return [ sd[int(x)] for x in dx]
+
+def ssf_osc(om_rad, Ts = 10):
+    """
+    Calculates servo sensitivity factor for oscillations
+
+    :param om_rad: angular frequency in radians
+    :param Ts: servo time constant in seconds
+    :return: amplitude of servo sensitivity factor
+    
+    :author: Piotr Morzyński
+    :date: 2023-09-15
+    :Changes:
+        - 2023-09-15: First version (Piotr Morzyński)
+    """
+    f = om_rad/(2*np.pi)  # Hz
+    tosc = 1./f
+    s = 1j*2*np.pi/tosc
+    H = 1/(Ts*s + 1)
+    return np.abs(H)
 
 def vmul(a,b):
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
@@ -101,15 +119,13 @@ for lab in par.labs:
 def calc_for_single_mjd(p):
     w = calc_single(p['mjd'], p['Om'])
     if w!=None:
-        print(p['mjd'], w[0], w[1], w[2], w[3])
         return (p['mjd'], w[0], w[1], w[2], w[3])
     else:
-        print( None )
         return None
     
 #Oms = [0.1, 0.01, 0.001]
 Oms = [ 0.02, 0.002]
-Oms = np.arange(0.001, 0.1, 0.01)
+Oms = np.arange(0.001, 0.2, 0.005)
 outs = []
 
 for Om in Oms:
@@ -128,7 +144,9 @@ for Om in Oms:
         np.save('osc.npy', npout)
         np.savetxt('osc.txt', npout)
         
+        plt.clf()
         plt.plot(npout[:,0], npout[:,1]*1e-18)
+        plt.plot(npout[:,0], npout[:,2]*1e-18)
         plt.yscale('log')
         plt.grid()
         plt.savefig('osc.png')
