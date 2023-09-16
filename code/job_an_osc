@@ -1,0 +1,13 @@
+#!/bin/bash
+#This script was generated automatically
+#PBS -l nodes=1:ppn=90
+#PBS -l mem=20000mb
+#PBS -l walltime=10:0:0
+#PBS -N an_3d
+#PBS -q small
+
+
+module load python/3.11.3-gcc-12.2.0
+#pip install PyQt5 pyqtgraph astropy pytz
+cd /home/pmorzynski/progs/DMAnaliza/code 
+python3 an_osc.py 
