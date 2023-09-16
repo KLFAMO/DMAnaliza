@@ -5,10 +5,9 @@ sys.path.append(str(progspath / 'mytools'))
 import matplotlib.pyplot as plt
 import tools as tls
 import numpy as np
-import dm_tools as dmt
 import scipy.optimize as scp
 import time
-import decimal as dec
+import multiprocessing
 import parameters as par
 
 etaum = 0
@@ -36,7 +35,7 @@ def calc_single(mjd, om):
     global etaum
     global sd
 
-    etau = 10/om  # rad/s
+    etau = om  # rad/s
     etaum = etau*86400
     end_mjd = mjd+0.05
     durm = end_mjd-mjd
@@ -99,35 +98,32 @@ for lab in par.labs:
         d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
         #sd[lnum[lab]]=d[lab].std()
 
-
+def calc_for_single_mjd(p):
+    w = calc_single(p['mjd'], p['Om'])
+    if w!=None:
+        print(p['mjd'], w[0], w[1], w[2], w[3])
+        return (p['mjd'], w[0], w[1], w[2], w[3])
+    else:
+        print( None )
+        return None
+    
 #Oms = [0.1, 0.01, 0.001]
 Oms = [ 0.02, 0.002]
 Oms = np.arange(0.001, 0.1, 0.01)
 outs = []
 
-mjds = np.arange(58658,58670 ,0.005)  #co ok 4s
 for Om in Oms:
         start = time.time()
-        mjd_t = []
-        out_t = []
-        err_t = []
-        err2_t = []
-        clocks_t = []
-        for mjd in mjds:
-            w = calc_single(mjd, Om)
-            if w!=None:
-                mjd_t.append(mjd)
-                out_t.append(w[0])
-                err_t.append(w[1])
-                err2_t.append(w[2])
-                clocks_t.append(w[3])
-                # print(Om, mjd, ' -> ', w[0], w[1], w[3])
-        # print(max(np.abs(out_t)), min(np.abs(out_t)) )
-        
-        Ts = 10
+        params = [{'mjd':mjd, 'Om':Om} for mjd in par.mjds]
+        # w = calc_single(mjd, Om)
+        with multiprocessing.Pool() as pool:
+            out = pool.map(calc_for_single_mjd, params)
+        out = [ x for x in out if x!=None]   
+        out = np.array(out) 
+        print(out)       
+        # Ts = 10
         tosc = 1./Om
-
-        outs.append([Om, max(np.abs(out_t)),  min(np.abs(out_t)), ])
+        outs.append([Om, max(np.abs(out[:,1])),  min(np.abs(out[:,1])), ])
         npout = np.array(outs)
         np.save('osc.npy', npout)
         np.savetxt('osc.txt', npout)
