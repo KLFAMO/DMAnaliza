@@ -34,10 +34,8 @@ def ssf_osc(om_rad, Ts = 10):
     :param Ts: servo time constant in seconds
     :return: amplitude of servo sensitivity factor
     
-    :author: Piotr Morzyński
-    :date: 2023-09-15
     :Changes:
-        - 2023-09-15: First version (Piotr Morzyński)
+        2023-09-15 (Piotr Morzyński): First version
     """
     f = om_rad/(2*np.pi)  # Hz
     tosc = 1./f
@@ -56,10 +54,8 @@ def calc_single(mjd, om):
     :param om: angular frequency of fited sine
     :return: [amplitude of sine from fit, pcov, pcov, clocks participated in fit]
     
-    :author: Piotr Morzyński
-    :date: 2023-09-15
     :Changes:
-        - 2023-09-15: First version (Piotr Morzyński)
+        2023-09-15 (Piotr Morzyński): First version
     """
     global etaum
     global sd
