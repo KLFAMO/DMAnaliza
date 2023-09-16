@@ -49,7 +49,18 @@ def vmul(a,b):
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
 
 def calc_single(mjd, om):
-   
+    """
+    Fits sine to data starting at mjd
+
+    :param mjd: modified julian date when data start
+    :param om: angular frequency of fited sine
+    :return: [amplitude of sine from fit, pcov, pcov, clocks participated in fit]
+    
+    :author: Piotr Morzyński
+    :date: 2023-09-15
+    :Changes:
+        - 2023-09-15: First version (Piotr Morzyński)
+    """
     global etaum
     global sd
 
