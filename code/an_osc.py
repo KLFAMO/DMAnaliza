@@ -26,7 +26,7 @@ def f(x,A,sh):
 def sigf(dx):
     return [ sd[int(x)] for x in dx]
 
-def ssf_osc(om_rad, Ts = 10):
+def ssf_osc(om_rad, Ts = 20):
     """
     Calculates servo sensitivity factor for oscillations
 
@@ -60,7 +60,7 @@ def calc_single(mjd, om):
     global etau_mjd
     global sd
 
-    etau_s = 3*2*np.pi/om  # [s]
+    etau_s = 10*2*np.pi/om  # [s]
     etau_mjd = etau_s/86400.
     end_mjd = mjd+etau_mjd
     datx=[]
@@ -73,9 +73,7 @@ def calc_single(mjd, om):
             data_serie = labs_data[lab].getrange(mjd,end_mjd)
             
             if data_serie != None and len(data_serie.dtab)==1:
-                # TODO: add checking that there is resonable uptime
-                if data_serie.dtab[0].mjd_tab[-1]-data_serie.dtab[0].mjd_tab[0] >= 0.75*etau_mjd:
-                    data_serie.rm_drift()
+                if etau_mjd/data_serie.getTotalTimeWithoutGaps() > 0.5:
                     datx.append(data_serie.mjd_tab() - (mjd) + par.lnum[lab])
                     daty.append(data_serie.val_tab())
                     cnt = cnt+1
@@ -134,15 +132,14 @@ for Om in Oms:
         tosc = 1./Om
         outs.append([Om, max(np.abs(out[:,1])),  min(np.abs(out[:,1])), ])
         npout = np.array(outs)
-        np.save('osc.npy', npout)
-        np.savetxt('osc.txt', npout)
+        np.save('osc_'+par.camp+'.npy', npout)
+        np.savetxt('osc'+par.camp+'.txt', npout)
         
         plt.clf()
         plt.plot(npout[:,0], npout[:,1]*1e-18)
-        plt.plot(npout[:,0], npout[:,2]*1e-18)
         plt.yscale('log')
         plt.grid()
-        plt.savefig('osc.png')
+        plt.savefig('osc'+par.camp+'.png')
 
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
