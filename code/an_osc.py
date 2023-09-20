@@ -134,13 +134,13 @@ for Om in Oms:
         outs.append([Om, max(np.abs(out[:,1])),  min(np.abs(out[:,1])), ])
         npout = np.array(outs)
         np.save('osc_'+par.camp+'.npy', npout)
-        np.savetxt('osc'+par.camp+'.txt', npout)
+        np.savetxt('osc_'+par.camp+'.txt', npout)
         
         plt.clf()
         plt.plot(npout[:,0], npout[:,1]*1e-18)
         plt.yscale('log')
         plt.grid()
-        plt.savefig('osc'+par.camp+'.png')
+        plt.savefig('osc_'+par.camp+'.png')
 
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
