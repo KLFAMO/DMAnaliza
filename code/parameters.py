@@ -34,9 +34,11 @@ camp = 'c1'
 
 mjds_dict ={
     # 'c1' : np.arange(58658,58670 ,0.00005),  #every 4s
-    'c1' : np.arange(58658,58660 ,0.005),  # for fast tests
-    'c2' : np.arange(58916,58935 ,0.00005),  #every 4s
-    # 'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
+	# 'c1' : np.arange(58658,58670 ,0.0005),  #every 40s for osc
+	'c1' : np.arange(58658,58670 ,0.005),  # for fast tests
+	# 'c2' : np.arange(58916,58935 ,0.00005),  #every 4s
+    'c2' : np.arange(58916,58935 ,0.0005),  #every 40s
+	# 'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
 }
 mjds = mjds_dict[camp]
 

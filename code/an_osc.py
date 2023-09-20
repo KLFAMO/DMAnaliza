@@ -74,6 +74,7 @@ def calc_single(mjd, om):
             
             if data_serie != None and len(data_serie.dtab)==1:
                 if etau_mjd/data_serie.getTotalTimeWithoutGaps() > 0.5:
+                    data_serie.rm_drift_each()
                     datx.append(data_serie.mjd_tab() - (mjd) + par.lnum[lab])
                     daty.append(data_serie.val_tab())
                     cnt = cnt+1
@@ -116,7 +117,7 @@ def calc_for_single_mjd(p):
     
 #Oms = [0.1, 0.01, 0.001]
 Oms = [ 0.02, 0.002]
-Oms = np.arange(0.001, 0.2, 0.005)
+Oms = np.arange(0.001, 0.4, 0.005)
 outs = []
 
 for Om in Oms:
