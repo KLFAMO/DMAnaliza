@@ -1,16 +1,17 @@
-import sys
-import os
-from local_settings import progspath
-sys.path.append(str(progspath / 'mytools'))
-import matplotlib.pyplot as plt
-import tools as tls
-import numpy as np
-import scipy.optimize as scp
-import time
-import multiprocessing
-import parameters as par
-from input_data import InputData
 
+from itertools import chain
+from local_settings import progspath
+import matplotlib.pyplot as plt
+import multiprocessing
+import numpy as np
+import os
+import parameters as par
+import scipy.optimize as scp
+import sys
+import time
+import tools as tls
+from input_data import InputData
+sys.path.append(str(progspath / 'mytools'))
 etaum = 0
 
 # 0: K, 1: std
@@ -128,9 +129,12 @@ Oms = [ 0.02, 0.002]
 Oms = np.arange(0.001, 0.2, 0.005)
 outs = []
 
+mjd_ranges = list(par.mjds_dict.values())
+mjds_chain = list(chain.from_iterable(mjd_ranges))
+
 for Om in Oms:
         start = time.time()
-        params = [{'mjd':mjd, 'Om':Om} for mjd in par.mjds]
+        params = [{'mjd':mjd, 'Om':Om} for mjd in mjds_chain]
         # w = calc_single(mjd, Om)
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)

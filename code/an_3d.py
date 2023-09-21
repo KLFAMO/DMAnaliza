@@ -1,3 +1,4 @@
+from itertools import chain
 import sys
 import os
 
@@ -159,10 +160,12 @@ def calc_results_for_length(out, D, length_mjd):
 
 maxvs = []
 time_all_start = time.time()
+mjd_ranges = list(par.mjds_dict.values())
+mjds_chain = list(chain.from_iterable(mjd_ranges))
 for D in par.Ds:
     for vec in par.vecs:
         # start = time.time()
-        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':-1*earth_velocity_xyz(mjd)} for mjd in par.mjds]
+        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':-1*earth_velocity_xyz(mjd)} for mjd in mjds_chain]
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
         # out = [calc_for_single_mjd(p) for p in params]
@@ -172,13 +175,13 @@ for D in par.Ds:
         if par.save_mjd_calcs: 
             fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
             outdat = np.array(out)
-            np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50'+par.camp+'_'+fname), outdat)
+            np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50_'+fname), outdat)
         # print('time [min]: ',(time.time()-start)/60.)
 
 print(maxvs)
 out_maxvs = np.array(maxvs)
-np.save('maxvs_'+par.camp+'.npy', maxvs)
-np.savetxt('maxvs_'+par.camp+'.txt', maxvs)
+np.save('maxvs_.npy', maxvs)
+np.savetxt('maxvs_.txt', maxvs)
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')

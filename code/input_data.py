@@ -3,26 +3,27 @@ import tools as tls
 
 class InputData:
 
-    def __init__(self, camp='', campaigns=[], labs=[], inf=[], path=''):
+    def __init__(self, campaigns=[], labs=[], inf=[], path=''):
         self.campaigns = campaigns
         self.labs = labs
         self.inf = inf
         self.path = path
         self.d = dict()
         self.loaded_labs = []
-        self.camp=camp
     
     def load_data_from_raw_files(self):
         for lab in self.labs:
             print('\nlab: ', lab)
-            lab_path = self.path+'d_'+lab+'_'+self.camp+'.npy'
-            print('lab_path: ', lab_path)
-            is_lab_file = os.path.isfile(lab_path)
-            print('is_lab_file: ', is_lab_file )
-            if is_lab_file:
-                self.d[lab] = tls.MTSerie(lab, color=self.inf[lab]['col'])
-                self.d[lab].add_mjdf_from_file( lab_path )
-                self.loaded_labs.append(lab)
+            for campaign in self.campaigns:
+                lab_path = self.path+'d_'+lab+'_'+campaign+'.npy'
+                print('lab_path: ', lab_path)
+                is_lab_file = os.path.isfile(lab_path)
+                print('is_lab_file: ', is_lab_file )
+                if is_lab_file:
+                    if lab not in self.loaded_labs:
+                        self.loaded_labs.append(lab)
+                        self.d[lab] = tls.MTSerie(lab, color=self.inf[lab]['col'])
+                    self.d[lab].add_mjdf_from_file( lab_path )
     
     def split(self, min_gap=12):
         for lab in self.loaded_labs:
