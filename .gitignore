@@ -1,5 +1,6 @@
 /data
 /code/data_preparation
+/code/local_settings.py
 python.env
 job_an_3d
 job_an_osc
