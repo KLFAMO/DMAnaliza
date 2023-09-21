@@ -9,6 +9,7 @@ import scipy.optimize as scp
 import time
 import multiprocessing
 import parameters as par
+from input_data import InputData
 
 etaum = 0
 
@@ -107,21 +108,13 @@ def calc_single(mjd, om):
             return None
 
 #reading data from npy files
-d = dict()
-for lab in par.labs:
-    print('\n'+lab)
-    print(os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ))
-    if os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ):
-        #print('\n'+lab)
-        d[lab] = tls.MTSerie(lab, color=par.inf[lab]['col'])
-        d[lab].add_mjdf_from_file(
-            str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') )   )
-        d[lab].split(min_gap=12)
-        #d[lab].rm_dc_each()
-        #d[lab].high_gauss_filter_each(stddev=350)
-        #d[lab].rm_drift_each()
-        d[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
-        #sd[lnum[lab]]=d[lab].std()
+path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
+indat = InputData(camp='c1', labs=par.labs, inf=par.inf, path=path)
+indat.split(min_gap=12)
+#indat.high_gauss_filter_each(stddev=350)
+indat.alphnorm()
+d = indat.get_data_dictionary()
+
 
 def calc_for_single_mjd(p):
     w = calc_single(p['mjd'], p['Om'])
