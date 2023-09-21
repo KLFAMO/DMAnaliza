@@ -1,10 +1,14 @@
 /data
 /code/data_preparation
 python.env
-test_job
+job_an_3d
+job_an_osc
+job_earth
 /out
 *.e[0-9][0-9][0-9]
 *.o[0-9][0-9][0-9]
 *.e[0-9][0-9][0-9][0-9]
 *.o[0-9][0-9][0-9][0-9]
+*.e[0-9][0-9][0-9][0-9][0-9]
+*.o[0-9][0-9][0-9][0-9][0-9]
 time.dat

@@ -2,16 +2,11 @@ import math
 import numpy as np
 import re
 
+from astropy.time import Time
 import astropy.units as u
 import astropy.coordinates as coord
-# from astropy.coordinates import SkyCoord, CartesianDifferential
-
-# import gala
-# import gala.dynamics as gd
-# import gala.potential as gp
 
 import spiceypy
-# from skyfield.api import load
 
 
 def dms2dd(lat):
@@ -228,12 +223,18 @@ def earth_velocity_vector(julian_date):
     
     return vx_ECEF, vy_ECEF, vz_ECEF
 
-# # Test 
+def earth_velocity_xyz(mjd):
+    """
+    Computes Earth's velocity in space in the Earth-Centered, Earth-Fixed coordinates for given Modified Julian Date
 
-julian_date = 2460166
+    :param mjd - Modified Julian Date
+    :return: [vx, vy, vz] in km/s
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
+    """
+    jd = Time(mjd, format='mjd').jd
+    print(jd)
+    vx, vy, vz = earth_velocity_vector(jd)
+    return [vx.value, vy.value, vz.value] # km/s
 
-vx, vy, vz = earth_velocity_vector(julian_date)
-print("Geocentric ECEF Velocities:")
-print("vx :", vx)
-print("vy :", vy)
-print("vz :", vz)
+print(earth_velocity_xyz(60000))
