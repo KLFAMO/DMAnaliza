@@ -11,6 +11,7 @@ import time
 import multiprocessing
 
 import parameters as par
+from earth_movement import earth_velocity_xyz
 
 etaum = 0
 
@@ -21,15 +22,15 @@ def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
 
 def f(x,A,sh):
-    ts = 8640       #1/ (10s / 86400 )
+    inverse_ts = 8640/2       #1/ (20s / 86400 )
     global etaum
     rx = int(x)
     if x-rx<2*etaum:
         return sh
     elif x-rx<3*etaum:
-        return A*(1-np.exp(-(x-rx-2*etaum)*ts))+sh   
+        return A*(1-np.exp(-(x-rx-2*etaum)*inverse_ts))+sh   
     else:
-        return ( A*(1-np.exp(-etaum*ts)) * np.exp(-(x-rx-3*etaum)*ts) ) + sh
+        return ( A*(1-np.exp(-etaum*inverse_ts)) * np.exp(-(x-rx-3*etaum)*inverse_ts) ) + sh
 
 def sigf(dx):
     return [ sd[int(x)] for x in dx]
@@ -168,7 +169,7 @@ time_all_start = time.time()
 for D in par.Ds:
     for vec in par.vecs:
         # start = time.time()
-        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':vec} for mjd in par.mjds]
+        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':-1*earth_velocity_xyz(mjd)} for mjd in par.mjds]
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
         # out = [calc_for_single_mjd(p) for p in params]
