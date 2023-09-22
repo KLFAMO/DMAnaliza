@@ -14,8 +14,10 @@ import multiprocessing
 import parameters as par
 from earth_movement import earth_velocity_xyz
 from input_data import InputData
+import matplotlib.pyplot as plt
 
 etaum = 0
+default_inverse_ts = 1/(par.default_servo_time_s/86400)
 
 # 0: K, 1: std
 sd = [0]*len(par.labs)
@@ -24,7 +26,7 @@ def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
 
 def f(x,A,sh):
-    inverse_ts = 8640/2       #1/ (20s / 86400 )
+    inverse_ts = default_inverse_ts
     global etaum
     rx = int(x)
     if x-rx<2*etaum:
@@ -64,7 +66,6 @@ def calc_single(mjd, v, D, vec):
     # capture data for labs for given mjd, v, D, vec
     for lab in par.labs:
         if lab in d.keys():
-            #print('Lab: ',lab)
             sh = vmul(vec,[ par.inf[lab]['X'],par.inf[lab]['Y'],par.inf[lab]['Z'] ]) / v
             shmjd = sh/86400     #calculate mjd shift (delay) for given lab
             s = d[lab].getrange(mjd+shmjd,end_mjd+shmjd)  #get shifted data
@@ -81,31 +82,31 @@ def calc_single(mjd, v, D, vec):
                     sd[par.lnum[lab]]=s.std()
 
     #if data from at least 3 labs are captured, fit data
-    if cnt>2:
-            datx = np.concatenate(datx)
-            daty = np.concatenate(daty)
-            sig = sigf(datx)
-            try:
-                popt, pcov = scp.curve_fit(fu, datx, daty,  
-                            sigma=sig, absolute_sigma=True )
-            except:
-                return None
-            return [popt[0], pcov[0,0]**0.5, pcov[1,1]**0.5, clocks]
-    else:
+    if cnt>=par.min_required_clocks:
+        datx = np.concatenate(datx)
+        daty = np.concatenate(daty)
+        sig = sigf(datx)
+        try:
+            popt, pcov = scp.curve_fit(fu, datx, daty,  
+                        sigma=sig, absolute_sigma=True )
+        except:
             return None
+        return [popt[0], pcov[0,0]**0.5, pcov[1,1]**0.5, clocks]
+    else:
+        return None
 
 #reading data from npy files
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
-print(path)
 indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
+indat.load_data_from_raw_files()
+indat.plot(file_name='indata1.png')
 indat.split(min_gap=12)
 indat.rm_dc_each()
 indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()
+indat.plot(file_name='indat2.png')
 d = indat.get_data_dictionary()
 
-
-# loop prameters----------------------
 
 def calc_for_single_mjd(p):
     w = calc_single(p['mjd'], p['v'], p['D'], p['vec'])
@@ -136,7 +137,6 @@ def calc_results_for_length(out, D, length_mjd):
         last_mjd = start
         maxv = v[i]
         state = 1
-        #print(m[i], min_maxv)
         while m[x]-start < length_mjd:
             if m[x]-last_mjd > mgap:
                 state = 0
@@ -156,36 +156,38 @@ def calc_results_for_length(out, D, length_mjd):
             i=i+1
             if i >= lenm-1:
                 break
-    # print('D ',D/par.v,', length ',length_mjd, ', val ',min_maxv)
     maxvs.append([D/par.v, min_maxv, length_mjd])
 
 maxvs = []
 time_all_start = time.time()
 mjd_ranges = list(par.mjds_dict.values())
 mjds_chain = list(chain.from_iterable(mjd_ranges))
-print(mjds_chain)
 for D in par.Ds:
+    print('event length [s]: ', D/par.v)
     for vec in par.vecs:
         # start = time.time()
         params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':earth_velocity_xyz(mjd)} for mjd in mjds_chain]
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
         # out = [calc_for_single_mjd(p) for p in params]
-        out = [ x for x in out if x!=None]      
+        out = [ x for x in out if x!=None]
         if out:
-            calc_results_for_length(out, D, 0.1)
+            calc_results_for_length(out, D, par.expected_event_to_event_mjd)
         if par.save_mjd_calcs: 
             fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
             outdat = np.array(out)
             np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50_'+fname), outdat)
-        # print('time [min]: ',(time.time()-start)/60.)
 
-print(maxvs)
 out_maxvs = np.array(maxvs)
-np.save('maxvs_.npy', maxvs)
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
 f.write(f"\n{(time.time()-time_all_start)/60.} min")
 f.close()
+
+plt.clf()
+plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
+plt.yscale('log')
+plt.grid()
+plt.savefig('maxvs.png')
 # ----------------------------------------

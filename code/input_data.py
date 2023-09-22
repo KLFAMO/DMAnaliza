@@ -1,5 +1,6 @@
 import os
 import tools as tls
+import matplotlib.pyplot as plt
 
 class InputData:
 
@@ -15,7 +16,7 @@ class InputData:
         for lab in self.labs:
             print('\nlab: ', lab)
             for campaign in self.campaigns:
-                lab_path = self.path+'d_'+lab+'_'+campaign+'.npy'
+                lab_path = self.path+'/d_'+lab+'_'+campaign+'.npy'
                 print('lab_path: ', lab_path)
                 is_lab_file = os.path.isfile(lab_path)
                 print('is_lab_file: ', is_lab_file )
@@ -50,3 +51,9 @@ class InputData:
 
     def get_data_dictionary(self):
         return self.d
+    
+    def plot(self, file_name='indata.png'):
+        for lab in self.loaded_labs:
+            self.d[lab].rm_dc_each()
+            self.d[lab].plot(show=0)
+        plt.savefig(file_name)

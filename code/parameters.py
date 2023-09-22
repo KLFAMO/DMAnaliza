@@ -19,31 +19,28 @@ lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
 
 # calc loop parameters
 v = 300000  # m/s   - speed of the Earth in space
-vecs = [   [-1,-1,-1],
-        [-1,-1,0], [-1,-1,1], [-1,0,-1], [-1,0,0], [-1,0,1], [-1,1,-1], [-1,1,0], [-1,1,1], 
-      [0,-1,-1], [0,-1,0], [0,-1,1], [0,0,-1], [0,0,0], [0,0,1], [0,1,-1], [0,1,0], [0,1,1],
-      [1,-1,-1], [1,-1,0], [1,-1,1], [1,0,-1], [1,0,0], [1,0,1], [1,1,-1], 
-      [1,1,0], [1,1,1], 
-]
+
 vecs = [ [1,1,1], ]
 
 #Ds = [ 20*v, 50*v, 100*v, 150*v]
-Ds = [ x*v for x in range(10,301)]
+Ds = [ x*v for x in range(10,201)]
 
 campaigns = ['c1', 'c2']
 
 mjds_dict_fast = {
-    'c1' : np.arange(58658,58659 ,0.0005),  # for fast tests
-    'c2' : np.arange(58917.8,58918 ,0.0005),  # for fast tests
+    'c1' : np.arange(58658,58659 ,0.03),  # for fast tests
+    'c2' : np.arange(58917.8,58919 ,0.05),  # for fast tests
 }
 
 mjds_dict ={
     'c1' : np.arange(58658,58670 ,0.00005),  #every 4s
-	# 'c1' : np.arange(58658,58660 ,0.005),  # for fast tests
     'c2' : np.arange(58916,58935 ,0.00005),  #every 4s
-    # 'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
 }
 
-mjds_dict = mjds_dict_fast
+# mjds_dict = mjds_dict_fast
 
 save_mjd_calcs = False
+
+default_servo_time_s = 20
+min_required_clocks = 2
+expected_event_to_event_mjd = 0.1
