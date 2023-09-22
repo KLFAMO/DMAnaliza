@@ -28,7 +28,7 @@ def f(x,A,sh):
 def sigf(dx):
     return [ sd[int(x)] for x in dx]
 
-def ssf_osc(om_rad, Ts = 20):
+def ssf_osc(om_rad, Ts = par.default_servo_time_s):
     """
     Calculates servo sensitivity factor for oscillations
 

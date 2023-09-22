@@ -178,16 +178,17 @@ for D in par.Ds:
             outdat = np.array(out)
             np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50_'+fname), outdat)
 
-out_maxvs = np.array(maxvs)
+    out_maxvs = np.array(maxvs)
+    plt.clf()
+    plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
+    plt.yscale('log')
+    plt.grid()
+    plt.savefig('maxvs.png')
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
 f.write(f"\n{(time.time()-time_all_start)/60.} min")
 f.close()
 
-plt.clf()
-plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
-plt.yscale('log')
-plt.grid()
-plt.savefig('maxvs.png')
+
 # ----------------------------------------

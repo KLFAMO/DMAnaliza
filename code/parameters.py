@@ -44,3 +44,4 @@ save_mjd_calcs = False
 default_servo_time_s = 20
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
+# at the moment earth's speed vector is fixed to [1,1,1] because of some issues with function calculating it
