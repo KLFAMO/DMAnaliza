@@ -7,6 +7,10 @@ test_job
 *.o[0-9][0-9][0-9]
 *.e[0-9][0-9][0-9][0-9]
 *.o[0-9][0-9][0-9][0-9]
+*.e[0-9][0-9][0-9][0-9][0-9]
+*.o[0-9][0-9][0-9][0-9][0-9]
 time.dat
 code/__pycache__
 code/job_earth
+code/job_an_3d
+code/job_an_osc
