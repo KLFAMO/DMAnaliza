@@ -32,6 +32,11 @@ Ds = [ x*v for x in range(10,301)]
 
 campaigns = ['c1', 'c2']
 
+mjds_dict_fast = {
+    'c1' : np.arange(58658,58660 ,0.005),  # for fast tests
+    'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
+}
+
 mjds_dict ={
     'c1' : np.arange(58658,58670 ,0.00005),  #every 4s
 	# 'c1' : np.arange(58658,58660 ,0.005),  # for fast tests
