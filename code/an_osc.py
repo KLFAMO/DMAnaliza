@@ -98,7 +98,7 @@ def calc_single(mjd, om):
 
 #reading data from npy files
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
-indat = InputData(camp='c1', labs=par.labs, inf=par.inf, path=path)
+indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.split(min_gap=12)
 #indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()

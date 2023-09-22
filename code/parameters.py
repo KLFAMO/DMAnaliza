@@ -33,8 +33,8 @@ Ds = [ x*v for x in range(10,301)]
 campaigns = ['c1', 'c2']
 
 mjds_dict_fast = {
-    'c1' : np.arange(58658,58660 ,0.005),  # for fast tests
-    'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
+    'c1' : np.arange(58658,58659 ,0.0005),  # for fast tests
+    'c2' : np.arange(58917.8,58918 ,0.0005),  # for fast tests
 }
 
 mjds_dict ={
@@ -43,5 +43,7 @@ mjds_dict ={
     'c2' : np.arange(58916,58935 ,0.00005),  #every 4s
     # 'c2' : np.arange(58917.8,58919 ,0.00005),  # for fast tests
 }
+
+mjds_dict = mjds_dict_fast
 
 save_mjd_calcs = False

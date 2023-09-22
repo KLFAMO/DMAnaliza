@@ -233,8 +233,6 @@ def earth_velocity_xyz(mjd):
         2023-08-20 by Joséphine Strübing-Tardy: First version
     """
     jd = Time(mjd, format='mjd').jd
-    print(jd)
-    vx, vy, vz = earth_velocity_vector(jd)
-    return [vx.value, vy.value, vz.value] # km/s
-
-print(earth_velocity_xyz(60000))
+    # vx, vy, vz = earth_velocity_vector(jd)
+    return [1,1,1]
+    # return [vx.value, vy.value, vz.value] # km/s

@@ -96,7 +96,8 @@ def calc_single(mjd, v, D, vec):
 
 #reading data from npy files
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
-indat = InputData(camp='c1', labs=par.labs, inf=par.inf, path=path)
+print(path)
+indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.split(min_gap=12)
 indat.rm_dc_each()
 indat.high_gauss_filter_each(stddev=350)
@@ -162,10 +163,11 @@ maxvs = []
 time_all_start = time.time()
 mjd_ranges = list(par.mjds_dict.values())
 mjds_chain = list(chain.from_iterable(mjd_ranges))
+print(mjds_chain)
 for D in par.Ds:
     for vec in par.vecs:
         # start = time.time()
-        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':-1*earth_velocity_xyz(mjd)} for mjd in mjds_chain]
+        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':earth_velocity_xyz(mjd)} for mjd in mjds_chain]
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
         # out = [calc_for_single_mjd(p) for p in params]
@@ -181,7 +183,6 @@ for D in par.Ds:
 print(maxvs)
 out_maxvs = np.array(maxvs)
 np.save('maxvs_.npy', maxvs)
-np.savetxt('maxvs_.txt', maxvs)
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
