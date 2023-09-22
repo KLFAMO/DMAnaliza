@@ -83,7 +83,7 @@ def calc_single(mjd, om):
                     clocks = clocks + (1 << par.lnum[lab])
                     sd[par.lnum[lab]]=data_serie.std()
 
-    if cnt>2:
+    if cnt>par.min_required_clocks:
             datx = np.concatenate(datx)
             daty = np.concatenate(daty)
             sig = sigf(datx)
@@ -100,10 +100,10 @@ def calc_single(mjd, om):
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
 indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.load_data_from_raw_files()
-indat.split(min_gap=12)
-#indat.high_gauss_filter_each(stddev=350)
+indat.split(min_gap=200)
+indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()
-d = indat.get_data_dictionary()
+labs_data = indat.get_data_dictionary()
 
 
 def calc_for_single_mjd(p):

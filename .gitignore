@@ -14,3 +14,6 @@ time.dat
 *.pyc
 code/__pycache__
 code/job_earth
+code/*.png
+code/__pycache__/parameters.cpython-39.pyc
+code/maxvs.png
