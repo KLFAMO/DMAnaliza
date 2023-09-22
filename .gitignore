@@ -2,9 +2,7 @@
 /code/data_preparation
 /code/local_settings.py
 python.env
-job_an_3d
-job_an_osc
-job_earth
+job_*
 /out
 *.e[0-9][0-9][0-9]
 *.o[0-9][0-9][0-9]
@@ -14,5 +12,5 @@ job_earth
 *.o[0-9][0-9][0-9][0-9][0-9]
 time.dat
 *.pyc
-code/__pycache__/earth_movement.cpython-39.pyc
+code/__pycache__
 code/job_earth
