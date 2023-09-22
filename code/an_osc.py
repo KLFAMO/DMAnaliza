@@ -9,9 +9,9 @@ import parameters as par
 import scipy.optimize as scp
 import sys
 import time
-import tools as tls
-from input_data import InputData
 sys.path.append(str(progspath / 'mytools'))
+from input_data import InputData
+import tools as tls
 etau_mjd = 0
 
 # 0: K, 1: std
@@ -134,14 +134,13 @@ for Om in Oms:
         tosc = 1./Om
         outs.append([Om, max(np.abs(out[:,1])),  min(np.abs(out[:,1])), ])
         npout = np.array(outs)
-        np.save('osc_'+par.camp+'.npy', npout)
-        np.savetxt('osc_'+par.camp+'.txt', npout)
+        np.save('osc_.npy', npout)
         
         plt.clf()
         plt.plot(npout[:,0], npout[:,1]*1e-18)
         plt.yscale('log')
         plt.grid()
-        plt.savefig('osc_'+par.camp+'.png')
+        plt.savefig('osc_.png')
 
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
