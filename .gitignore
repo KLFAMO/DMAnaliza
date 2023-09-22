@@ -14,3 +14,5 @@ job_earth
 *.o[0-9][0-9][0-9][0-9][0-9]
 time.dat
 *.pyc
+code/__pycache__/earth_movement.cpython-39.pyc
+code/job_earth
