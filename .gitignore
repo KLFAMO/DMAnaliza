@@ -10,10 +10,13 @@ job_*
 *.o[0-9][0-9][0-9][0-9]
 *.e[0-9][0-9][0-9][0-9][0-9]
 *.o[0-9][0-9][0-9][0-9][0-9]
+*.e[0-9][0-9][0-9][0-9][0-9]
+*.o[0-9][0-9][0-9][0-9][0-9]
 time.dat
-*.pyc
-code/__pycache__
+code/__pycache__/earth_movement.cpython-39.pyc
 code/job_earth
 code/*.png
 code/__pycache__/parameters.cpython-39.pyc
 code/maxvs.png
+code/job_an_3d
+code/job_an_osc
