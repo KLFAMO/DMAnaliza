@@ -30,6 +30,10 @@ class InputData:
         for lab in self.loaded_labs:
             self.d[lab].split(min_gap=min_gap)
     
+    def rm_dc(self):
+        for lab in self.loaded_labs:
+            self.d[lab].rm_dc()
+
     def rm_dc_each(self):
         for lab in self.loaded_labs:
             self.d[lab].rm_dc_each()
@@ -41,6 +45,10 @@ class InputData:
     def high_gauss_filter_each(self, stddev=350):
         for lab in self.loaded_labs:
             self.d[lab].high_gauss_filter_each(stddev=stddev)
+    
+    def rmoutlayers(self):
+        for lab in self.loaded_labs:
+            self.d[lab].rmoutlayers()
 
     def alphnorm(self):
         """
@@ -52,8 +60,15 @@ class InputData:
     def get_data_dictionary(self):
         return self.d
     
-    def plot(self, file_name='indata.png'):
+    def get_mjd_range(self, from_mjd, to_mjd):
+        for lab in self.loaded_labs:
+            self.d[lab].getrange_on_self(from_mjd, to_mjd)
+    
+    def plot(self, file_name='indata.png', savefig=True):
         for lab in self.loaded_labs:
             self.d[lab].rm_dc_each()
             self.d[lab].plot(show=0)
-        plt.savefig(file_name)
+        if savefig:
+            plt.savefig(file_name)
+        else:
+            plt.show()
