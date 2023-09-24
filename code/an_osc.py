@@ -1,15 +1,17 @@
-import sys
-import os
-from local_settings import progspath
-sys.path.append(str(progspath / 'mytools'))
-import matplotlib.pyplot as plt
-import tools as tls
-import numpy as np
-import scipy.optimize as scp
-import time
-import multiprocessing
-import parameters as par
 
+from itertools import chain
+from local_settings import progspath
+import matplotlib.pyplot as plt
+import multiprocessing
+import numpy as np
+import os
+import parameters as par
+import scipy.optimize as scp
+import sys
+import time
+sys.path.append(str(progspath / 'mytools'))
+from input_data import InputData
+import tools as tls
 etau_mjd = 0
 
 # 0: K, 1: std
@@ -26,7 +28,7 @@ def f(x,A,sh):
 def sigf(dx):
     return [ sd[int(x)] for x in dx]
 
-def ssf_osc(om_rad, Ts = 20):
+def ssf_osc(om_rad, Ts = par.default_servo_time_s):
     """
     Calculates servo sensitivity factor for oscillations
 
@@ -81,7 +83,7 @@ def calc_single(mjd, om):
                     clocks = clocks + (1 << par.lnum[lab])
                     sd[par.lnum[lab]]=data_serie.std()
 
-    if cnt>2:
+    if cnt>par.min_required_clocks:
             datx = np.concatenate(datx)
             daty = np.concatenate(daty)
             sig = sigf(datx)
@@ -95,18 +97,14 @@ def calc_single(mjd, om):
             return None
 
 #reading data from npy files
-labs_data = dict()
-for lab in par.labs:
-    if os.path.isfile( str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') ) ):
-        labs_data[lab] = tls.MTSerie(lab, color=par.inf[lab]['col'])
-        labs_data[lab].add_mjdf_from_file(
-            str( progspath / (r'DMAnaliza/data/d_prepared/d_' +lab+'_'+par.camp+'.npy') )   )
-        labs_data[lab].split(min_gap=12)
-        #d[lab].rm_dc_each()
-        #d[lab].high_gauss_filter_each(stddev=350)
-        #d[lab].rm_drift_each()
-        labs_data[lab].alphnorm(atom=par.inf[lab]['atom'])  #convert AOM freq to da/a
-        #sd[lnum[lab]]=d[lab].std()
+path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
+indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
+indat.load_data_from_raw_files()
+indat.split(min_gap=200)
+indat.high_gauss_filter_each(stddev=350)
+indat.alphnorm()
+labs_data = indat.get_data_dictionary()
+
 
 def calc_for_single_mjd(p):
     w = calc_single(p['mjd'], p['Om'])
@@ -120,9 +118,12 @@ Oms = [ 0.02, 0.002]
 Oms = np.arange(0.001, 0.4, 0.005)
 outs = []
 
+mjd_ranges = list(par.mjds_dict.values())
+mjds_chain = list(chain.from_iterable(mjd_ranges))
+
 for Om in Oms:
         start = time.time()
-        params = [{'mjd':mjd, 'Om':Om} for mjd in par.mjds]
+        params = [{'mjd':mjd, 'Om':Om} for mjd in mjds_chain]
         # w = calc_single(mjd, Om)
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
@@ -133,14 +134,13 @@ for Om in Oms:
         tosc = 1./Om
         outs.append([Om, max(np.abs(out[:,1])),  min(np.abs(out[:,1])), ])
         npout = np.array(outs)
-        np.save('osc_'+par.camp+'.npy', npout)
-        np.savetxt('osc_'+par.camp+'.txt', npout)
+        np.save('osc_.npy', npout)
         
         plt.clf()
         plt.plot(npout[:,0], npout[:,1]*1e-18)
         plt.yscale('log')
         plt.grid()
-        plt.savefig('osc_'+par.camp+'.png')
+        plt.savefig('osc_.png')
 
         print('time [min]: ',(time.time()-start)/60.)
 # ----------------------------------------
