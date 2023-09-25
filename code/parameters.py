@@ -18,7 +18,7 @@ lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
         'NICT':5, 'SYRTE':6, 'NMIJ':7, 'KRISS':8, 'PTB':9}
 
 # calc loop parameters
-v = 300000  # m/s   - speed of the Earth in space
+v = 230000  # m/s   - speed of the Earth in space
 
 vecs = [ [1,1,1], ]
 
