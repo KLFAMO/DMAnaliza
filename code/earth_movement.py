@@ -2,50 +2,107 @@ import math
 import numpy as np
 import re
 
+from astropy.time import Time
 import astropy.units as u
 import astropy.coordinates as coord
-from astropy.coordinates import SkyCoord, CartesianDifferential
-import matplotlib.pyplot as plt
-#!pip install --upgrade numpy==1.20.0
-import numpy
-print(numpy.__version__)
-
-import gala
-import gala.dynamics as gd
-import gala.potential as gp
 
 import spiceypy
-from skyfield.api import load
 
+
+def dms2dd(lat):
+    """
+    Converts GPS coordinates from hours, minutes, second to decimal degrees format
+    
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
+    """
+    deg, minutes, seconds, direction =  re.split('[°\'"]', lat)
+    newlat = (float(deg) + float(minutes)/60 + float(seconds)/(60*60)) * (-1 if direction in ['W', 'S'] else 1)
+    return newlat
+
+def dd2dms(dd):
+    """
+    Converts coordinates from decimal degrees to hours, minute, seconds
+    
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
+    """
+    d = int(dd)
+    m = int((dd - d) * 60)
+    s = (dd - d - m/60) * 3600.00
+    z= round(s, 2)
+    if d >= 0:
+        dms = (f"+ {abs(d)}° {abs(m)}' {abs(z)}\"")
+    else:
+        dms = (f"- {abs(d)}° {abs(m)}' {abs(z)}\"")
+    return dms
+
+def gps2ecef(long, lat, h):
+    """
+    Converts GPS coordinates into ECEF (Earth-Centered Earth-Fixed) Cartesian coordinates
+
+    :param Longitude (decimal degrees), 
+    :param Latitude (decimal degrees), 
+    :param Height (m)
+    :return: X, Y, Z in the ECEF
+
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
+    """
+    a = 6378137 # earth semi-major axis = equatorial radius in m
+    b = 6356752 # earth sem-minor axis = polar radius in m
+    lat = math.radians(lat)
+    long = math.radians(long)
+    
+    e = 1 - (b**2) / (a**2)
+    N = a / np.sqrt(1 - e**2 * math.sin(lat)**2 )
+    
+    x = (N+h) * math.cos(lat) * math.cos(long)
+    y = (N+h) * math.cos(lat) * math.sin(long)
+    z = (N * (1-e**2) +h) * math.sin(lat)
+    
+    return x, y, z
+
+# # checking for Torun 
+# long = dms2dd("18° 35' 53.30' E")
+# lat = dms2dd("53° 00' 49.50' N")
+# print("GPS coordinates in decimal degrees:",long, lat)
+
+# h = 65 # above sea-level, in m 
+# x, y, z = gps2ecef(long, lat, h)
+# print("X:", x)
+# print("Y:", y)
+# print("Z:", z)
 
 def sun_ecliptic_position(julian_date):
     """
-    Returns the position of the Sun in ecliptic coordinates for given Julian Date 
+    Returns the position of the Sun in ecliptic coordinates for given Julian Date
+
+    :param julian_date
+    :return: l - ecliptic longitude
+    :rerutn: b - ecliptic latitude
+    :return: r - sun-earth distance [au]
+    :return: e - obliquity of the ecliptic
+    :return: r_km - sun-earth distance [km]
+
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version 
     """
     n = julian_date - 2451545 # number of days since J2000
-    
     # mean longitude of the Sun 
     L = 280.459 + 0.9856474 * n 
-    
     # mean anomaly of the Sun 
     g = 357.529 + 0.9856003 * n 
-    
     # get the values of L and g to be between 0 and 360 degrees
     L = L % 360
     g = g % 360
-    
     # ecliptic longitude 
     l = L + 1.915 * np.sin(np.deg2rad(g)) + 0.020 * np.sin(np.deg2rad(2 * g))
-    
     # ecliptic latitude 
     b = 0
-    
     # sun-earth distance in au 
     r = 1.00014 - 0.01671 * np.cos(np.deg2rad(g)) - 0.00014 * np.cos(np.deg2rad(2 * g))
-    
     r_km = r*1.496e8
-    print("Sun-Earth distance in km:", r_km) # sanity check
-    
     # obliquity of the ecliptic 
     e = 23.439 - 0.0000003 * n 
     
@@ -54,8 +111,10 @@ def sun_ecliptic_position(julian_date):
 def sun_equatorial_position(l_deg, b_deg, r, e_deg):
     """
     Returns position of the Sun in equatorial coordinates for a given set of ecliptic coordinates
+
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
     """
-    
     # Convert input values to radians
     l = np.deg2rad(l_deg)
     b = np.deg2rad(b_deg)
@@ -67,9 +126,15 @@ def sun_equatorial_position(l_deg, b_deg, r, e_deg):
     
     return np.rad2deg(ra), np.rad2deg(dec)  # Convert back to degrees
 
+# l, b, r, e, r_km = sun_ecliptic_position(12000)
+# print(sun_equatorial_position(l, b, r, e))
+
 def earth_velocity_vector(julian_date):
     """
     Computes Earth's Vx, Vy, Vz in the Earth-Centered, Earth-Fixed coordinates for every given Julian Date
+
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
     """
     # VELOCITY OF SOLAR SYSTEM AROUND GALAXY ----------------------------------------------------
     
@@ -83,7 +148,7 @@ def earth_velocity_vector(julian_date):
     ra = "9 h 16 m 27.73590156690716 s"
     dec = dd2dms(dec_deg)
     icrs = coord.SkyCoord(ra=coord.Angle(f'{ra}'), dec=coord.Angle(dec), 
-                          distance = r_km*u.km) 
+                          distance = r_km*u.km)
 
     # Converting to hour angle format for Right Ascension 
     ra_h = int(ra_deg // 15)  # Convert degrees to hours (1 hour = 15 degrees)
@@ -158,12 +223,16 @@ def earth_velocity_vector(julian_date):
     
     return vx_ECEF, vy_ECEF, vz_ECEF
 
-# Test 
+def earth_velocity_xyz(mjd):
+    """
+    Computes Earth's velocity in space in the Earth-Centered, Earth-Fixed coordinates for given Modified Julian Date
 
-julian_date = 2460166
-
-vx, vy, vz = earth_velocity_vector(julian_date)
-print("Geocentric ECEF Velocities:")
-print("vx :", vx)
-print("vy :", vy)
-print("vz :", vz)
+    :param mjd - Modified Julian Date
+    :return: [vx, vy, vz] in km/s
+    :Changes:
+        2023-08-20 by Joséphine Strübing-Tardy: First version
+    """
+    jd = Time(mjd, format='mjd').jd
+    # vx, vy, vz = earth_velocity_vector(jd)
+    return [1,1,1]
+    # return [vx.value, vy.value, vz.value] # km/s
