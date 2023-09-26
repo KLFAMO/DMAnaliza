@@ -183,7 +183,7 @@ for D in par.Ds:
     plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
     plt.yscale('log')
     plt.grid()
-    plt.savefig('maxvs.png')
+    plt.savefig('maxvs_p.png')
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')
