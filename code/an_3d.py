@@ -115,6 +115,7 @@ def calc_for_single_mjd(p):
     else:
         return None
 
+
 def calc_results_for_length(out, D, length_mjd):
     """
     calculate results from campaign for single set of parameters
