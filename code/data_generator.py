@@ -5,31 +5,29 @@ import random
 import matplotlib.pyplot as plt
 from scipy import signal
 
-# generate mjd every 4s for 4min 
-
-c1 = np.arange(58658, 58658.0027, 0.00005) 
-c1 = list(c1)
-
-# generate random frequency correction 
-
-correction = random.triangular(-10, 10)
-print("correction is:", correction)
-
-def correction_simulator(c1):
+def correction_simulator(amplitude, duration, mjd):
 
     """ generates random numbers between -10 and 10 every 4s for 4min"""
 
+    # generate mjd every 4s for the duration in seconds 
+    duration_mjd = duration * 0.000675
+    c1 = np.arange(mjd, mjd+duration_mjd, 0.00005) 
+    c1_list = list(c1)
+
     S = []
-    for i in range(len(c1)):
+    for i in range(len(c1_list)):
         # random numbers between -10 and 10
-        s = random.triangular(-10, 10)
+        s = np.random.normal(0, amplitude)
         S.append(s)
     nps = np.array(S)
 
-    return nps
+    return c1, nps
 
-correction = correction_simulator(c1)
-c1 = np.array(c1)
+correction = correction_simulator(10, 4*60, 58658)[1]
+print(correction)
+mjd = 58658
+c1 = correction_simulator(10, 4*60, 58658)[0]
+print(c1)
 
 # plot the generated data 
 
@@ -66,12 +64,9 @@ def pulse(c1, correction):
 print(pulse(c1, correction))
 
 
-umk1 = correction_simulator(c1)
-np.save('d_UMK1_c1.npy', umk1)
+JLAB1 = correction_simulator(c1)
+np.save('d_JLAB1_c1.npy', JLAB1)
 
-umk2 = correction_simulator(c1)
-np.save('d_UMK2_c1.npy', umk2)
-
-umk3 = correction_simulator(c1)
-np.save('d_NIST _c1.npy', umk3)
+JLAB2 = correction_simulator(c1)
+np.save('d_JLAB2_c1.npy', JLAB2)
 # %%
