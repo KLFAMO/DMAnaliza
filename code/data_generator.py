@@ -66,9 +66,6 @@ def pulse(c1, correction):
 print(pulse(c1, correction))
 
 
-
-    
-
 umk1 = correction_simulator(c1)
 np.save('d_UMK1_c1.npy', umk1)
 

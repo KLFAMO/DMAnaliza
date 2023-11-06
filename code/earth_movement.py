@@ -236,3 +236,18 @@ def earth_velocity_xyz(mjd):
     # vx, vy, vz = earth_velocity_vector(jd)
     return [1,1,1]
     # return [vx.value, vy.value, vz.value] # km/s
+
+
+# test
+
+# 'UMK1': {'X':3644273,  'Y':1226649,  'Z':5071736}
+
+long = dms2dd("18° 35' 53.30' E")
+lat = dms2dd("53° 00' 49.50' N")
+print("GPS coordinates in decimal degrees:",long, lat)
+
+h = 65 # above sea-level, in m 
+x, y, z = gps2ecef(long, lat, h)
+print("X:", x)
+print("Y:", y)
+print("Z:", z)
