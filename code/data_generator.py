@@ -5,12 +5,24 @@ import random
 import matplotlib.pyplot as plt
 from scipy import signal
 
-def correction_simulator(amplitude, duration, mjd):
+def data_simulator(amplitude, duration, mjd):
 
-    """ generates random numbers between -10 and 10 every 4s for 4min"""
+    """ 
+    Generates random numbers between -10 and 10 every 4s for 4min
+    
+    inputs: 
+    amplitude: standard deviation of the stimulated data 
+    duration: in seconds
+    mjd: starting MJD in MJD
+    
+    outputs:
+    c1: time array with a point every 4s in mjd
+    nps: stimulated data 
+
+    """
 
     # generate mjd every 4s for the duration in seconds 
-    duration_mjd = duration * 0.000675
+    duration_mjd = duration * 0.000675 #change the duration from seconds to MJD
     c1 = np.arange(mjd, mjd+duration_mjd, 0.00005) 
     c1_list = list(c1)
 
@@ -23,11 +35,9 @@ def correction_simulator(amplitude, duration, mjd):
 
     return c1, nps
 
-correction = correction_simulator(10, 4*60, 58658)[1]
-print(correction)
+correction = data_simulator(10, 4*60, 58658)[1]
 mjd = 58658
-c1 = correction_simulator(10, 4*60, 58658)[0]
-print(c1)
+c1 = data_simulator(10, 4*60, 58658)[0]
 
 # plot the generated data 
 
@@ -58,15 +68,16 @@ def pulse(c1, correction):
 
     plt.figure()
     plt.plot(c1, combined_data)
+    plt.title("Generated data with 20s pulse")
+    plt.xlabel("MJD")
+    plt.ylabel("Frequency correction (au)")
+    plt.show
 
     return combined_data
 
-print(pulse(c1, correction))
-
-
-JLAB1 = correction_simulator(c1)
+JLAB1 = data_simulator(10, 4*60, 58658)
 np.save('d_JLAB1_c1.npy', JLAB1)
 
-JLAB2 = correction_simulator(c1)
+JLAB2 = data_simulator(10, 4*60, 58658)
 np.save('d_JLAB2_c1.npy', JLAB2)
 # %%
