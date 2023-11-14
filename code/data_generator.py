@@ -47,17 +47,38 @@ plt.xlabel("MJD")
 plt.ylabel("Frequency correction (au)")
 plt.show
 
+c1 = list(c1)
 
-def pulse(c1, correction):
+def pulse(c1, correction, pulse_duration, pulse_amplitude, starting):
 
-    """ generates 20s pulses """
+    """ 
+    Generates a pulse
+    
+    input: 
+    c1: time array with a point every 4s in mjd
+    correction: stimulated data for (amplitude, duration, mjd)=(10, 4*60, 58658)
+    pulse_duration: length of the pulse in seconds
+    pulse_amplitude: amplitude of the pulse
+    starting: how long after the data begins should the pulse be, in seconds
 
-    #generating a 20s pulse
-    pulse_duration = 0.00005 * 5  # 5*4 seconds
-    duty_cycle = 0.5  # Adjust this value to control the pulse width
-    pulse_signal = signal.square(2 * np.pi * pulse_duration * c1, duty=duty_cycle)
+    outputs:
 
-    print(pulse_signal)
+       """
+
+    # converting to MJD
+
+    pulse_duration = 0.000675 * pulse_duration 
+    starting = 0.000675 * starting
+
+    # generating a pulse
+    
+    print(c1[0])
+    pulse_begin = c1[0]+starting
+    pulse_end = pulse_begin + pulse_duration
+
+    print(pulse_begin, pulse_end)
+    for i in range(pulse_begin, pulse_end):
+        pulse_signal = pulse_amplitude
 
     # Combine with your existing data
     existing_data = correction 
@@ -74,6 +95,9 @@ def pulse(c1, correction):
     plt.show
 
     return combined_data
+
+results = pulse(c1, correction, 10, 10, 30)
+print(results)
 
 JLAB1 = data_simulator(10, 4*60, 58658)
 np.save('d_JLAB1_c1.npy', JLAB1)
