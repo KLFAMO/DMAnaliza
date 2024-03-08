@@ -12,7 +12,7 @@ import time
 import multiprocessing
 
 import parameters as par
-from earth_movement import earth_velocity_xyz
+from earth_movement import sun_speed_astropy
 from input_data import InputData
 import matplotlib.pyplot as plt
 
@@ -166,7 +166,7 @@ for D in par.Ds:
     print('event length [s]: ', D/par.v)
     for vec in par.vecs:
         # start = time.time()
-        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':earth_velocity_xyz(mjd)} for mjd in mjds_chain]
+        params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':-1*sun_speed_astropy(mjd)} for mjd in mjds_chain]
         with multiprocessing.Pool() as pool:
             out = pool.map(calc_for_single_mjd, params)
         # out = [calc_for_single_mjd(p) for p in params]
@@ -183,7 +183,7 @@ for D in par.Ds:
     plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
     plt.yscale('log')
     plt.grid()
-    plt.savefig('maxvs.png')
+    plt.savefig('maxvs_p.png')
 
 f = open(os.path.join(progspath,'DMAnaliza',
             'out','time.dat'), 'a')

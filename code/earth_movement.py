@@ -6,6 +6,20 @@ from astropy.time import Time
 import astropy.units as u
 import astropy.coordinates as coord
 
+from astropy.coordinates import ( 
+    AltAz,
+    BarycentricMeanEcliptic,
+    BarycentricTrueEcliptic,
+    EarthLocation,
+    Galactic,
+    GCRS,
+    GeocentricMeanEcliptic,
+    get_body,
+    get_sun,
+    SkyCoord, 
+)
+
+
 import spiceypy
 
 
@@ -107,6 +121,19 @@ def sun_ecliptic_position(julian_date):
     e = 23.439 - 0.0000003 * n 
     
     return l, b, r, e, r_km
+
+def sun_ecliptic_position_astropy(julian_date):
+    time = Time(julian_date, format="jd")
+    #get coordinates of sun
+    sun_coords = get_body('sun', time)
+    # sun_ecliptic = sun_coords.transform_to(BarycentricMeanEcliptic())
+    sun_ecliptic = sun_coords.transform_to(GeocentricMeanEcliptic())
+    l = sun_ecliptic.lon.degree
+    b = sun_ecliptic.lat.degree
+    r = sun_ecliptic.distance.au
+    r_km = sun_ecliptic.distance.to(u.km).value
+    e = 23.439292 
+    return l, b, r, e, r_km
  
 def sun_equatorial_position(l_deg, b_deg, r, e_deg):
     """
@@ -131,7 +158,7 @@ def sun_equatorial_position(l_deg, b_deg, r, e_deg):
 
 def earth_velocity_vector(julian_date):
     """
-    Computes Earth's Vx, Vy, Vz in the Earth-Centered, Earth-Fixed coordinates for every given Julian Date
+    Computes Earth's Vx, Vy, Vz in the Earth-Centered, Earth-Fixed coordinates for given Julian Date
 
     :Changes:
         2023-08-20 by Joséphine Strübing-Tardy: First version
@@ -149,7 +176,7 @@ def earth_velocity_vector(julian_date):
     dec = dd2dms(dec_deg)
     icrs = coord.SkyCoord(ra=coord.Angle(f'{ra}'), dec=coord.Angle(dec), 
                           distance = r_km*u.km)
-
+    
     # Converting to hour angle format for Right Ascension 
     ra_h = int(ra_deg // 15)  # Convert degrees to hours (1 hour = 15 degrees)
     ra_m = int((ra_deg % 15) * 4)  # Convert remaining degrees to minutes (1 min = 0.25 degrees)
@@ -233,6 +260,63 @@ def earth_velocity_xyz(mjd):
         2023-08-20 by Joséphine Strübing-Tardy: First version
     """
     jd = Time(mjd, format='mjd').jd
-    # vx, vy, vz = earth_velocity_vector(jd)
-    return [1,1,1]
-    # return [vx.value, vy.value, vz.value] # km/s
+    vx, vy, vz = earth_velocity_vector(jd)
+    return [vx.value, vy.value, vz.value] # km/s
+
+
+from astropy.coordinates import get_body_barycentric_posvel, solar_system_ephemeris, SkyCoord
+from astropy.time import Time
+from astropy import units as u
+
+def earth_velocity_xyz_astropy(mjd_time):
+    print('using astropy -----------------------')
+    # Definiujemy czas w formacie MJD
+    time = Time(mjd_time, format='mjd')
+    
+    # Uzyskanie współrzędnych Słońca w układzie GCRS (Geocentric Celestial Reference System)
+    sun_gcrs = get_body('sun', time)
+    # Konwersja na geocentryczne współrzędne ekliptyczne
+    sun_ecliptic = sun_gcrs.transform_to(BarycentricTrueEcliptic())
+    print('sun_ecliptic lon: ', sun_ecliptic.lon)
+    print('sun_ecliptic lat: ', sun_ecliptic.lat)
+
+def icrs_sun_astropy(jd):
+    time = Time(jd, format='jd')
+
+    # Pobranie współrzędnych Słońca w układzie ICRS
+    sun = get_sun(time)
+
+    # Współrzędne Słońca
+    ra = sun.ra  # Rektascensja
+    dec = sun.dec  # Deklinacja
+    distance = sun.distance  # Odległość
+    print(sun)
+
+
+def sun_speed_astropy(mjd):
+    t = Time(mjd, format='mjd')
+
+    # Lokalizacja obserwatora na powierzchni Ziemi (można dostosować do własnych potrzeb)
+    location = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)  # Na równiku, południk zerowy
+
+    # Tworzymy układ współrzędnych AltAz dla tej lokalizacji i czasu
+    altaz = AltAz(obstime=t, location=location)
+
+    # Współrzędne Słońca w układzie Galaktyki
+    sun_galactic = SkyCoord(l=90*u.deg, b=0*u.deg, frame='galactic')
+
+    # Przekształcamy do układu AltAz (to jest nasze przybliżenie dla układu ECEF)
+    sun_ecef = sun_galactic.transform_to(altaz)
+
+    # Wektor prędkości Słońca w Galaktyce (w przybliżeniu)
+    v_sun_galactic = 230 * u.km/u.s  # 230 km/s w kierunku l=90°
+
+    # Teraz musimy przekształcić wektor prędkości do układu ECEF (AltAz)
+    # Zrobimy to w przybliżony sposób, zakładając, że składowa azymutalna to składowa X, a składowa wysokości to składowa Z.
+    v_sun_ecef = [
+        v_sun_galactic * np.cos(sun_ecef.az.to(u.rad).value) * np.cos(sun_ecef.alt.to(u.rad).value),
+        v_sun_galactic * np.sin(sun_ecef.az.to(u.rad).value) * np.cos(sun_ecef.alt.to(u.rad).value),
+        v_sun_galactic * np.sin(sun_ecef.alt.to(u.rad).value)
+    ]
+
+    return [v.value*1e3 for v in v_sun_ecef]

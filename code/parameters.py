@@ -18,7 +18,7 @@ lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
         'NICT':5, 'SYRTE':6, 'NMIJ':7, 'KRISS':8, 'PTB':9}
 
 # calc loop parameters
-v = 300000  # m/s   - speed of the Earth in space
+v = 230000  # m/s   - speed of the Earth in space
 
 vecs = [ [1,1,1], ]
 
@@ -26,7 +26,7 @@ vecs = [ [1,1,1], ]
 Ds = [ x*v for x in range(10,201)]
 
 campaigns = ['c1', 'c2', 'c3']
-campaigns = ['c1']
+# campaigns = ['c1']
 
 mjds_dict_fast = {
     'c1' : np.arange(58658,58659 ,0.03),  # for fast tests
@@ -51,4 +51,3 @@ save_mjd_calcs = False
 default_servo_time_s = 20
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
-# at the moment earth's speed vector is fixed to [1,1,1] because of some issues with function calculating it
