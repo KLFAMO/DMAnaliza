@@ -1,5 +1,6 @@
 import os
-import tools as tls
+# import tools as tls
+import timanda.tserie as tls
 import matplotlib.pyplot as plt
 
 class InputData:
@@ -26,9 +27,9 @@ class InputData:
                         self.d[lab] = tls.MTSerie(lab, color=self.inf[lab]['col'])
                     self.d[lab].add_mjdf_from_file( lab_path )
     
-    def split(self, min_gap=12):
+    def split(self, min_gap_s=12):
         for lab in self.loaded_labs:
-            self.d[lab].split(min_gap=min_gap)
+            self.d[lab].split(min_gap_s=min_gap_s)
     
     def rm_dc(self):
         for lab in self.loaded_labs:
@@ -72,3 +73,4 @@ class InputData:
             plt.savefig(file_name)
         else:
             plt.show()
+            

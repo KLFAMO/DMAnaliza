@@ -3,9 +3,9 @@ import sys
 import os
 
 from local_settings import progspath
-sys.path.append(str(progspath / 'mytools'))
+# sys.path.append(str(progspath / 'mytools'))
 
-import tools as tls
+#import tools as tls
 import numpy as np
 import scipy.optimize as scp
 import time
@@ -15,6 +15,7 @@ import parameters as par
 from earth_movement import sun_speed_astropy
 from input_data import InputData
 import matplotlib.pyplot as plt
+# from timanda.tserie import GTserie as tls
 
 etaum = 0
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
@@ -100,7 +101,7 @@ path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
 indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.load_data_from_raw_files()
 indat.plot(file_name='indata1.png')
-indat.split(min_gap=12)
+indat.split(min_gap_s=12)
 indat.rm_dc_each()
 indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()
