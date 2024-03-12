@@ -7,9 +7,11 @@ from local_settings import progspath
 
 #import tools as tls
 import numpy as np
+import pickle
 import scipy.optimize as scp
 import time
 import multiprocessing
+from multiprocessing import shared_memory
 
 import parameters as par
 from earth_movement import sun_speed_astropy
@@ -21,6 +23,18 @@ default_inverse_ts = 1/(par.default_servo_time_s/86400)
 
 # 0: K, 1: std
 sd = [0]*len(par.labs)
+
+def get_d():
+    path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
+    indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
+    indat.load_data_from_raw_files()
+    # indat.plot(file_name='indata1.png')
+    indat.split(min_gap_s=12)
+    indat.rm_dc_each()
+    indat.high_gauss_filter_each(stddev=350)
+    indat.alphnorm()
+    # indat.plot(file_name='indat2.png')
+    return indat.get_data_dictionary()
 
 def fu(dx,A,sh):
     return [f(x,A,sh) for x in dx]
@@ -42,12 +56,19 @@ def sigf(dx):
 def vmul(a,b):
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
 
-def calc_single(mjd, v, D, vec):
+def calc_single(p):
     """
     v - speed  [m/s]
     D - size [m]
     vec - direction
     """
+
+    mjd = p['mjd']
+    v = p['v']
+    D = p['D']
+    vec = p['vec']
+    d = p['data']
+
     global etaum
     global sd
 
@@ -99,7 +120,8 @@ def calc_single(mjd, v, D, vec):
 
 
 def calc_for_single_mjd(p):
-    w = calc_single(p['mjd'], p['v'], p['D'], p['vec'])
+    global d
+    w = calc_single(p)
     if w!=None:
         return (p['mjd'], w[0], w[1], w[2], w[3])
     else:
@@ -148,31 +170,30 @@ def calc_results_for_length(out, D, length_mjd):
                 break
     maxvs.append([D/par.v, min_maxv, length_mjd])
 
-if __name__ == "__main__":
-    #reading data from npy files
-    path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
-    indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
-    indat.load_data_from_raw_files()
-    indat.plot(file_name='indata1.png')
-    indat.split(min_gap_s=12)
-    indat.rm_dc_each()
-    indat.high_gauss_filter_each(stddev=350)
-    indat.alphnorm()
-    indat.plot(file_name='indat2.png')
-    d = indat.get_data_dictionary()
 
+if __name__ == "__main__":
+    d = get_d()
     maxvs = []
     time_all_start = time.time()
     mjd_ranges = list(par.mjds_dict.values())
     mjds_chain = list(chain.from_iterable(mjd_ranges))
+    
     for D in par.Ds:
         print('event length [s]: ', D/par.v)
         for vec in par.vecs:
             # start = time.time()
-            params = [{'mjd':mjd, 'D':D, 'v':par.v, 'vec':vec} for mjd in mjds_chain]
-            # with multiprocessing.Pool(processes=1) as pool:
-            #     out = pool.map(calc_for_single_mjd, params)
-            out = [calc_for_single_mjd(p) for p in params]
+            params = [{
+                    'mjd':mjd,
+                    'D':D,
+                    'v':par.v,
+                    'vec':vec,
+                    'data':d,
+                } for mjd in mjds_chain]
+            if par.use_multiprocessing:
+                with multiprocessing.Pool(processes=par.processes_number) as pool:
+                    out = pool.map(calc_for_single_mjd, params)
+            else:
+                out = [calc_for_single_mjd(p) for p in params]
             out = [ x for x in out if x!=None]
             if out:
                 calc_results_for_length(out, D, par.expected_event_to_event_mjd)
@@ -182,16 +203,14 @@ if __name__ == "__main__":
                 np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50_'+fname), outdat)
 
         out_maxvs = np.array(maxvs)
-        plt.clf()
-        plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
-        plt.yscale('log')
-        plt.grid()
-        plt.savefig('maxvs_p.png')
-
+        if out_maxvs.size>0:
+            plt.clf()
+            plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
+            plt.yscale('log')
+            plt.grid()
+            plt.savefig('maxvs_p.png')
+    
     f = open(os.path.join(progspath,'DMAnaliza',
                 'out','time.dat'), 'a')
     f.write(f"\n{(time.time()-time_all_start)/60.} min")
     f.close()
-
-
-# ----------------------------------------
