@@ -100,7 +100,7 @@ def calc_single(mjd, om):
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
 indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.load_data_from_raw_files()
-indat.split(min_gap=200)
+indat.split(min_gap_s=200)
 indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()
 labs_data = indat.get_data_dictionary()
