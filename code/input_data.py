@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import os
 # import tools as tls
 import timanda.tserie as tls
@@ -79,3 +80,23 @@ class InputData:
             plt.savefig(file_name)
         else:
             plt.show()
+
+    def add_pulse(self, mjd, amplitude, direction, size, speed):
+        """
+        Add artificial pulse to existing data.
+
+        params:
+            mjd - event mjd
+            amplitude - amplitude of the pulse
+            direction - numpy 3d vector of the defect speed
+            size - size of the defect
+        """
+        direction_ampl = np.linalg.norm(direction)
+        defect_duration = size/speed
+        for lab in self.loaded_labs:
+            self.d[lab].add_pulse(
+                self,
+                start_mjd=mjd,
+                amplitude=amplitude,
+                duration = 10,
+            )
