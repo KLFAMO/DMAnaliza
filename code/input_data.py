@@ -81,7 +81,7 @@ class InputData:
         else:
             plt.show()
 
-    def add_pulse(self, mjd, amplitude, direction, size, speed):
+    def add_pulse(self):
         """
         Add artificial pulse to existing data.
 
@@ -91,12 +91,10 @@ class InputData:
             direction - numpy 3d vector of the defect speed
             size - size of the defect
         """
-        direction_ampl = np.linalg.norm(direction)
-        defect_duration = size/speed
+        # direction_ampl = np.linalg.norm(direction)
+        # defect_duration = size/speed
+        mjd_tab = [58666.0, 58666.2, 58666.4, 58666.6, 58666.8 ,58667.1]
+        val_tab = [20, 20, 20, 20, 20, 20]
+        off_mts = tls.MTSerie(TSerie=tls.TSerie(mjd=mjd_tab, val=val_tab))
         for lab in self.loaded_labs:
-            self.d[lab].add_pulse(
-                self,
-                start_mjd=mjd,
-                amplitude=amplitude,
-                duration = 10,
-            )
+            self.d[lab].add_val_offset_from_mts(off_mts)

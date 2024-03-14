@@ -1,7 +1,7 @@
 import numpy as np
 
 labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
-# labs = ['UMK1',] # 'UMK2', 'NIST']
+labs = ['UMK1',] # 'UMK2', 'NIST']
 
 inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20}, 
         'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20},
