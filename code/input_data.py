@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import os
+import pulse
 # import tools as tls
 import timanda.tserie as tls
 import matplotlib.pyplot as plt
@@ -81,7 +82,7 @@ class InputData:
         else:
             plt.show()
 
-    def add_pulse(self):
+    def add_pulse(self, mjd, amplitude, size, vec, speed):
         """
         Add artificial pulse to existing data.
 
@@ -97,4 +98,12 @@ class InputData:
         val_tab = [220, 120, 220, 120, -220, 120]
         off_mts = tls.MTSerie(TSerie=tls.TSerie(mjd=mjd_tab, val=val_tab))
         for lab in self.loaded_labs:
+            off_mts = pulse.generate_mts_pulse(
+                mjd=mjd,
+                lab=lab,
+                amplitude=amplitude,
+                size=size,
+                vec=vec,
+                speed=speed,
+            )
             self.d[lab].add_val_offset_from_mts(off_mts)
