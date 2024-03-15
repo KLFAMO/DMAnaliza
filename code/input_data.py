@@ -93,8 +93,8 @@ class InputData:
         """
         # direction_ampl = np.linalg.norm(direction)
         # defect_duration = size/speed
-        mjd_tab = [58666.0, 58666.2, 58666.4, 58666.6, 58666.8 ,58667.1]
-        val_tab = [20, 20, 20, 20, 20, 20]
+        mjd_tab = [58666.0001, 58666.2, 58666.4, 58666.6, 58666.8 ,58667.1]
+        val_tab = [220, 120, 220, 120, -220, 120]
         off_mts = tls.MTSerie(TSerie=tls.TSerie(mjd=mjd_tab, val=val_tab))
         for lab in self.loaded_labs:
             self.d[lab].add_val_offset_from_mts(off_mts)
