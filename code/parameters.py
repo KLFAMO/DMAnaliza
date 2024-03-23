@@ -1,6 +1,7 @@
 import numpy as np
 
-labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+# labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
 
 inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20}, 
         'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20},
@@ -23,13 +24,13 @@ v = 230000  # m/s   - speed of the Earth in space
 vecs = [ [1,1,1], ]
 
 #Ds = [ 20*v, 50*v, 100*v, 150*v]
-Ds = [ x*v for x in range(10,51)]
+Ds = [ x*v for x in range(10,12)]
 
 campaigns = ['c1', 'c2', 'c3']
 campaigns = ['c1']
 
 mjds_dict_fast = {
-    'c1' : np.arange(58658,58659 ,0.03),  # for fast tests
+    'c1' : np.arange(58658,58669 ,0.001),  # for fast tests
     'c2' : np.arange(58917.8,58919 ,0.05),  # for fast tests
 }
 
@@ -51,3 +52,5 @@ save_mjd_calcs = False
 default_servo_time_s = 20
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
+use_multiprocessing = True
+processes_number = 4
