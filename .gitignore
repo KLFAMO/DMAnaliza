@@ -1,6 +1,7 @@
 /data
 /code/data_preparation
 /code/local_settings.py
+/prime_jobs
 python.env
 job_*
 /out
