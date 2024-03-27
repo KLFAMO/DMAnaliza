@@ -1,7 +1,7 @@
 import numpy as np
 
-# labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
-labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
+labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+# labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
 
 inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20}, 
         'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20},
@@ -27,7 +27,7 @@ vecs = [ [1,1,1], ]
 Ds = [ x*v for x in range(10,12)]
 
 campaigns = ['c1', 'c2', 'c3']
-campaigns = ['c1']
+campaigns = ['c3']
 
 mjds_dict_fast = {
     'c1' : np.arange(58658,58669 ,0.001),  # for fast tests
@@ -49,7 +49,7 @@ mjds_dict = mjds_dict_fast
 
 save_mjd_calcs = False
 
-default_servo_time_s = 20
+default_servo_time_s = 30
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
 use_multiprocessing = True
