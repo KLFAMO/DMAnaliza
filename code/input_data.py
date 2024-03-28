@@ -107,3 +107,13 @@ class InputData:
                 speed=speed,
             )
             self.d[lab].add_val_offset_from_mts(off_mts)
+    
+    def add_sin(self, ref_mjd=0, amplitude=1, omega=0):
+        """
+        Add artificial sinusoidal signal to existing data.
+
+        params:
+            amplitude - amplitude A in A*sin(omega*t)
+        """
+        for lab in self.loaded_labs:
+            self.d[lab].add_sin(ref_mjd=0, amplitude=amplitude, omega=omega)
