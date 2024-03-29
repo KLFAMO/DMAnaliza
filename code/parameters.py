@@ -27,7 +27,7 @@ vecs = [ [1,1,1], ]
 Ds = [ x*v for x in range(10,12)]
 
 campaigns = ['c1', 'c2', 'c3']
-campaigns = ['c3']
+campaigns = ['c1']
 
 mjds_dict_fast = {
     'c1' : np.arange(58658,58669 ,0.001),  # for fast tests
