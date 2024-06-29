@@ -1,5 +1,13 @@
 This project is aimed at the analysis of optical atomic clocks data for testing cosmological theories predicting transient fine-structure constant variations in time in the form of pulses or oscillations.
 
+# Installation
+
+To run the project `timanda` library need to be importet. You can download the project from [https://github.com/ppmor/timanda] and install using
+"
+cd <timanda project>
+pip install -e .
+"
+
 # Branches
 
 - `main` - production branch (not used yet)
