@@ -223,7 +223,7 @@ def earth_velocity_vector(julian_date):
                                                     et=julian_date, \
                                                     ref='ECLIPJ2000', obs=10)
 
-    # Transform the velocities to IRCS velocities 
+    # Transform the velocities to ICRS velocities 
     heliocentric_ecliptic = coord.HeliocentricTrueEcliptic(representation_type='cartesian', 
                                       x = eart_state_wrt_sun[0] * u.km, 
                                       y = eart_state_wrt_sun[1] * u.km, 
@@ -270,12 +270,12 @@ from astropy import units as u
 
 def earth_velocity_xyz_astropy(mjd_time):
     print('using astropy -----------------------')
-    # Definiujemy czas w formacie MJD
+    #  We define the time in MJD format
     time = Time(mjd_time, format='mjd')
     
-    # Uzyskanie współrzędnych Słońca w układzie GCRS (Geocentric Celestial Reference System)
+    # Obtaining the coordinates of the Sun in the Geocentric Celestial Reference System (GCRS).
     sun_gcrs = get_body('sun', time)
-    # Konwersja na geocentryczne współrzędne ekliptyczne
+    # Conversion to geocentric ecliptic coordinates
     sun_ecliptic = sun_gcrs.transform_to(BarycentricTrueEcliptic())
     print('sun_ecliptic lon: ', sun_ecliptic.lon)
     print('sun_ecliptic lat: ', sun_ecliptic.lat)
@@ -283,36 +283,36 @@ def earth_velocity_xyz_astropy(mjd_time):
 def icrs_sun_astropy(jd):
     time = Time(jd, format='jd')
 
-    # Pobranie współrzędnych Słońca w układzie ICRS
+    # Downloading the coordinates of the Sun in the ICRS system
     sun = get_sun(time)
 
-    # Współrzędne Słońca
-    ra = sun.ra  # Rektascensja
-    dec = sun.dec  # Deklinacja
-    distance = sun.distance  # Odległość
+    # Coordinates of the Sun
+    ra = sun.ra  # Right Ascension
+    dec = sun.dec  # Declination
+    distance = sun.distance  # Distance
     print(sun)
 
 
 def sun_speed_astropy(mjd):
     t = Time(mjd, format='mjd')
 
-    # Lokalizacja obserwatora na powierzchni Ziemi (można dostosować do własnych potrzeb)
-    location = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)  # Na równiku, południk zerowy
+    # Location of the observer on the Earth's surface (can be customized)
+    location = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)  # At the equator, the zero meridian
 
-    # Tworzymy układ współrzędnych AltAz dla tej lokalizacji i czasu
+    # We create an AltAz coordinate system for this location and time
     altaz = AltAz(obstime=t, location=location)
 
-    # Współrzędne Słońca w układzie Galaktyki
+    # The coordinates of the Sun in the Galactic system
     sun_galactic = SkyCoord(l=90*u.deg, b=0*u.deg, frame='galactic')
 
-    # Przekształcamy do układu AltAz (to jest nasze przybliżenie dla układu ECEF)
+    # We convert to the AltAz layout (this is our approximation for the ECEF layout)
     sun_ecef = sun_galactic.transform_to(altaz)
 
-    # Wektor prędkości Słońca w Galaktyce (w przybliżeniu)
+    # The velocity vector of the Sun in the Galaxy (approximately)
     v_sun_galactic = 230 * u.km/u.s  # 230 km/s w kierunku l=90°
 
-    # Teraz musimy przekształcić wektor prędkości do układu ECEF (AltAz)
-    # Zrobimy to w przybliżony sposób, zakładając, że składowa azymutalna to składowa X, a składowa wysokości to składowa Z.
+    # Now we need to transform the velocity vector to the ECEF (AltAz) system
+    # We will do this in an approximate way, assuming that the azimuthal component is the X component and the elevation component is the Z component.
     v_sun_ecef = [
         v_sun_galactic * np.cos(sun_ecef.az.to(u.rad).value) * np.cos(sun_ecef.alt.to(u.rad).value),
         v_sun_galactic * np.sin(sun_ecef.az.to(u.rad).value) * np.cos(sun_ecef.alt.to(u.rad).value),
@@ -320,3 +320,6 @@ def sun_speed_astropy(mjd):
     ]
 
     return [v.value*1e3 for v in v_sun_ecef]
+
+sun_speed = sun_speed_astropy(63000.15)
+print(sun_speed)
