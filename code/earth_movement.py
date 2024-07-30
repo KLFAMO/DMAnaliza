@@ -196,7 +196,7 @@ def earth_velocity_vector(julian_date):
                                       v_y = 245.6 * u.km/u.s, 
                                       v_z = 7.78 * u.km/u.s)
     # Transform the velocities to ecliptic coordinates 
-    heliocentric_ecliptic = galactocentric.transform_to(coord.HeliocentricTrueEcliptic)
+    heliocentric_ecliptic = galactocentric.transform_to(coord.HeliocentricTrueEcliptic())
 
     # Extract heliocentric velocities in ecliptic coordinates
     
@@ -205,7 +205,7 @@ def earth_velocity_vector(julian_date):
     vz_gal_e = heliocentric_ecliptic.velocity.d_z
     
     # Convert heliocentric ecliptic velocities to IRCS 
-    icrs = heliocentric_ecliptic.transform_to(coord.ICRS)
+    icrs = heliocentric_ecliptic.transform_to(coord.ICRS())
 
     # Convert ICRS Velocities to Geocentric ECEF Velocities
     ecef_velocities = icrs.velocity.d_xyz
@@ -217,7 +217,7 @@ def earth_velocity_vector(julian_date):
     #  VELOCITY OF EARTH AROUND SUN --------------------------------------------------------------
     
     # Obtain velocity of Earth around the Sun in ecliptic coordinates for a given julian date
-    spiceypy.furnsh('de421.bsp')
+    spiceypy.furnsh("DMANALIZA/code/de421.bsp")
 
     eart_state_wrt_sun, earth_sun_lt = spiceypy.spkgeo(targ=399, \
                                                     et=julian_date, \
@@ -233,7 +233,7 @@ def earth_velocity_vector(julian_date):
                                       v_y = eart_state_wrt_sun[4] * u.km/u.s, 
                                       v_z = eart_state_wrt_sun[5] * u.km/u.s 
                                       )
-    icrs = heliocentric_ecliptic.transform_to(coord.ICRS)
+    icrs = heliocentric_ecliptic.transform_to(coord.ICRS())
 
     # Convert ICRS Velocities to Geocentric ECEF Velocities
     ecef_velocities_sun = icrs.velocity.d_xyz
@@ -250,6 +250,8 @@ def earth_velocity_vector(julian_date):
     
     return vx_ECEF, vy_ECEF, vz_ECEF
 
+print(earth_velocity_vector(2460508.474919))
+
 def earth_velocity_xyz(mjd):
     """
     Computes Earth's velocity in space in the Earth-Centered, Earth-Fixed coordinates for given Modified Julian Date
@@ -262,6 +264,21 @@ def earth_velocity_xyz(mjd):
     jd = Time(mjd, format='mjd').jd
     vx, vy, vz = earth_velocity_vector(jd)
     return [vx.value, vy.value, vz.value] # km/s
+
+
+# print(earth_velocity_xyz(60360))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from astropy.coordinates import get_body_barycentric_posvel, solar_system_ephemeris, SkyCoord
@@ -322,4 +339,5 @@ def sun_speed_astropy(mjd):
     return [v.value*1e3 for v in v_sun_ecef]
 
 sun_speed = sun_speed_astropy(63000.15)
-print(sun_speed)
+
+print("\n\nSuccess!\n\n")

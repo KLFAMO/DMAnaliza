@@ -57,10 +57,6 @@ def sun_speed_astropy(mjd):
 
 # Test
 
-mjd = 60493.60420139
-sun_speed = sun_speed_astropy(mjd)
-print(sun_speed)
-
 def earth_velocity_xyz_astropy(mjd):
 
     """
@@ -82,23 +78,33 @@ def earth_velocity_xyz_astropy(mjd):
     # Get speed of the Sun around Galaxy in Earth-Centered coordinates
     v_sun_galaxy = sun_speed_astropy(mjd)
 
-    # Velocity of Earth around the Sun 
-    with solar_system_ephemeris.set('builtin'):
-        # Get the barycentric position and velocity of the Earth
-        earth_barycentric_pos, earth_barycentric_vel = get_body_barycentric_posvel('earth', time)
+    print("Sun vel:", v_sun_galaxy)
     
-    # Transform barycentric position to ITRS (ECEF)
-    itrs = GCRS(earth_barycentric_pos, obstime=time).transform_to(ITRS(obstime=time))
-    
-    # Extract velocity components in ITRS frame (ECEF)
-    v_earth_sun_ecef = itrs.velocity.xyz.to_value()
+    # Get the barycentric position and velocity of the Earth
+    earth_barycentric_pos, earth_barycentric_vel = get_body_barycentric_posvel('earth', time)
 
+    print("get body:", earth_barycentric_pos, earth_barycentric_vel)
+    
+    # Transform barycentric position to AltAz (ECEF)
+    earth_barycentric_pos_obj = SkyCoord(earth_barycentric_pos, frame='icrs')
+    earth_altaz = earth_barycentric_pos_obj.transform_to(altaz)
+    print("Earth pos", earth_altaz)
+
+    # Extract velocity components in ITRS frame (ECEF)
+    earth_barycentric_vel_obj = SkyCoord(earth_barycentric_vel, frame='icrs')
+    earth_vel_altaz = earth_barycentric_vel_obj.transform_to(altaz)
+    print("Earth vel:", earth_vel_altaz)
 
     # Total velocity in ECEF by adding Sun's velocity around Galaxy in ECEF
-    total_velocity = v_earth_sun_ecef + v_sun_galaxy.value
+    total_velocity = earth_vel_altaz + v_sun_galaxy
 
     return total_velocity
 
-mjd = 60493.60420139
-earth_speed = earth_velocity_xyz_astropy(mjd)
-print(earth_speed)
+if __name__ == "__main__":
+
+    mjd = 60493.60420139
+    sun_speed = sun_speed_astropy(mjd)
+    print("sun speed", sun_speed)
+
+    earth_speed = earth_velocity_xyz_astropy(mjd)
+    print("earth speed", earth_speed)
