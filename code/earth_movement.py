@@ -20,7 +20,7 @@ from astropy.coordinates import (
 )
 
 
-import spiceypy
+#import spiceypy
 
 
 def dms2dd(lat):
