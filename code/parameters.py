@@ -32,8 +32,8 @@ campaigns = ['c1', 'c2', 'c3']
 campaigns = ['c1']
 
 mjds_dict_fast = {
-    'c1' : np.arange(58658,58669 ,0.001),  # for fast tests
-    'c2' : np.arange(58917.8,58919 ,0.05),  # for fast tests
+    'c1' : np.arange(58658,58669 ,0.1),  # for fast tests
+    'c2' : np.arange(58917.8,58919 ,0.5),  # for fast tests
 }
 
 mjds_dict ={

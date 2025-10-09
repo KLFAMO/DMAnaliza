@@ -1,8 +1,8 @@
-#progspath_str = "/home/pmorzynski/progs"
-progspath_str = ""
+project_path_str = ""
+#project_path_str = "/home/pmorzynski/progs"
 
 import pathlib as pa
-if progspath_str == "":
-    progspath = pa.Path(__file__).absolute().parents[2]
+if project_path_str:
+    project_path = pa.Path(__file__).absolute().parents[2]
 else:
-    progspath = pa.Path(progspath_str)
+    project_path = pa.Path(project_path_str)
