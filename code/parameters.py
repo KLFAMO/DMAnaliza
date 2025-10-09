@@ -3,6 +3,8 @@ import numpy as np
 labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
 # labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
 
+# Coordinates and other info about labs
+# X,Y,Z in meters in ITRF 2014
 inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20}, 
         'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20},
         'NIST': {'col':'blue',  'atom':'171Yb', 'X':-1288363, 'Y':-4721684, 'Z':4078659, 'servo_time_s': 20},
