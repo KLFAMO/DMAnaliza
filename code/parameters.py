@@ -23,11 +23,12 @@ lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
 # calc loop parameters
 v = 230000  # m/s   - speed of the Earth in space
 
-vecs = [ [1,1,1], ]
+vecs = [ [1,1,1], ] # direction vectors
 
-#Ds = [ 20*v, 50*v, 100*v, 150*v]
-Ds = [ x*v for x in range(10,12)]
+# Ds = [ 20*v, 50*v, 100*v, 150*v]
+Ds = [ t*v for t in range(12,14)] # sizes in meters
 
+# which campaigns to analyze
 campaigns = ['c1', 'c2', 'c3']
 campaigns = ['c1']
 
