@@ -4,8 +4,6 @@ This project is aimed at the analysis of optical atomic clocks data for testing 
 
 ## Short events analysis
 
-test
-
 Set simmulation parameters in `parameters.py`
 
 Run `an_3d.py`
