@@ -1,20 +1,20 @@
 from itertools import chain
-import sys
+# import sys
 import os
 
-from local_settings import progspath
+from local_settings import project_path
 # sys.path.append(str(progspath / 'mytools'))
 
 #import tools as tls
 import numpy as np
-import pickle
+# import pickle
 import scipy.optimize as scp
 import time
 import multiprocessing
-from multiprocessing import shared_memory
+# from multiprocessing import shared_memory
 
 import parameters as par
-from earth_movement import sun_speed_astropy
+# from earth_movement import sun_speed_astropy
 from input_data import InputData
 import matplotlib.pyplot as plt
 
@@ -25,7 +25,8 @@ default_inverse_ts = 1/(par.default_servo_time_s/86400)
 sd = [0]*len(par.labs)
 
 def get_d():
-    path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
+    """load and prepare data"""
+    path = str( project_path / (r'data/d_prepared/') )
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     indat.load_data_from_raw_files()
     # indat.plot(file_name='indata1.png')
@@ -200,7 +201,7 @@ if __name__ == "__main__":
             if par.save_mjd_calcs: 
                 fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
                 outdat = np.array(out)
-                np.save(os.path.join(progspath,'DMAnaliza', 'out', 'out50_'+fname), outdat)
+                np.save(os.path.join(project_path, 'out', 'out50abc_'+fname), outdat)
 
         out_maxvs = np.array(maxvs)
         if out_maxvs.size>0:
@@ -210,7 +211,6 @@ if __name__ == "__main__":
             plt.grid()
             plt.savefig('maxvs_p.png')
     
-    f = open(os.path.join(progspath,'DMAnaliza',
-                'out','time.dat'), 'a')
+    f = open('../out/time.dat', 'a')
     f.write(f"\n{(time.time()-time_all_start)/60.} min")
     f.close()
