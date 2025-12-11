@@ -27,3 +27,5 @@ When solving an issue:
 - Prepare a new branch with the name: `issue-<number of issue>-your-title` (for example: `issue-154-using-fourier-analysis-for-oscillations`). The branch should be created from the `test` branch.
 - Add comments/questions to the issue if needed.
 - Prepare a pull request (to the `test` branch) when the code is ready. If the task is more complicated, you can split it into multiple pull requests (for example, if you have already spent 1 week on it).
+
+...
