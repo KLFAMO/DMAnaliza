@@ -30,28 +30,15 @@ def fu(dx,A,sh):
 def f(x,A,sh):   
     return A*np.sin(Om*x+sh)*ssf_osc(Om)
 
-Om = 0.1
-
-x = np.arange(100,200,0.1)
-y = fu(x, 1, 0)
-
-print(fu(x, 1, 0))
-
-
 path = str( progspath / (r'DMAnaliza/data/d_prepared/') )
 indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
 indat.load_data_from_raw_files()
-# indat.get_mjd_range(58666, 58667)
-indat.rm_dc()
-indat.high_gauss_filter_each(stddev=50)
 indat.split(min_gap_s=20)
 indat.rm_dc_each()
 indat.rm_drift_each()
-indat.high_gauss_filter_each(stddev=50)
-indat.rm_dc_each()
-indat.rm_drift_each()
+indat.high_gauss_filter_each(stddev=350)
 indat.alphnorm()
-indat.plot(savefig=False)
+indat.plot(savefig=True, file_name=f'indat_{par.campaigns[0]}.png')
 labs_data = indat.get_data_dictionary()
 
 mt = []
@@ -59,7 +46,6 @@ vt = []
 st = []
 for i, lab in enumerate(labs_data):
     ld = labs_data[lab]
-    # ld.time_shift_each(i*40000)
     mt.append( ld.mjd_tab() )
     vt.append( ld.val_tab() )
     std = ld.std()
@@ -74,7 +60,7 @@ cst = list(cst)
 Om = 0.1
 ot = []
 at = []
-for om in np.arange(0.001, 0.3, 0.03):
+for om in np.arange(0.01, 0.31, 0.01):
     Om = om
     popt, pcov = scp.curve_fit(fu, cmt, cvt, sigma=cst, absolute_sigma=True)
     ot.append(Om)
@@ -83,5 +69,8 @@ for om in np.arange(0.001, 0.3, 0.03):
     plt.plot(ot, at)
     plt.yscale('log')
     plt.grid()
-    plt.savefig('osc2.png')
+    plt.savefig(f'osc2_{par.campaigns[0]}.png')
+    ff = open(f'dat_{par.campaigns[0]}.dat', 'a')
+    ff.write(f'{om}\t{np.abs(popt[0])}\n')
+    ff.close()
               

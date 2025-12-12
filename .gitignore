@@ -1,6 +1,7 @@
 /data
 /code/data_preparation
 /code/local_settings.py
+/prime_jobs
 python.env
 job_*
 /out
@@ -24,3 +25,6 @@ code/__pycache__/parameters.cpython-311.pyc
 code/__pycache__/local_settings.cpython-311.pyc
 code/__pycache__/input_data.cpython-311.pyc
 code/__pycache__
+code/__pycache__/local_settings.cpython-39.pyc
+code/__pycache__/parameters.cpython-39.pyc
+code/__pycache__/parameters.cpython-39.pyc
