@@ -300,12 +300,18 @@ def earth_velocity_itrf_from_mjd_astropy(mjd):
     v_itrf = R3 @ v_tot_icrs
     return v_itrf * 1000.0  # m/s
 
+#mjd_test = Time.now()
+#time = Time(mjd_test, format="jd")
+print("=============================================")
 if __name__ == "__main__":
-    mjd_test = 59000.0
+    #mjd_test = 59000.0
+    mjd_test = 61021.5
     v_itrf = earth_velocity_itrf_from_mjd(mjd_test)
     v_itrf_astropy = earth_velocity_itrf_from_mjd_astropy(mjd_test)
     print("Earth velocity in ITRF at MJD {:.1f}:".format(mjd_test))
     print("  Custom code:   vx={:.2f} m/s, vy={:.2f} m/s, vz={:.2f} m/s".format(v_itrf[0], v_itrf[1], v_itrf[2]))
     print("  Astropy code:  vx={:.2f} m/s, vy={:.2f} m/s, vz={:.2f} m/s".format(v_itrf_astropy[0], v_itrf_astropy[1], v_itrf_astropy[2]))
-    print("Difference (custom - astropy):")
-    print("  dvx={:.2f} m/s, dvy={:.2f} m/s, dvz={:.2f} m/s".format(v_itrf[0]-v_itrf_astropy[0], v_itrf[1]-v_itrf_astropy[1], v_itrf[2]-v_itrf_astropy[2]))
+    print("Custom Norm: v={:.2f} km/s".format((np.sqrt(v_itrf[0]**2 + v_itrf[1]**2 + v_itrf[2]**2))/1000.0))
+    print("Astropy Norm: v={:.2f} km/s".format((np.sqrt(v_itrf_astropy[0]**2 + v_itrf_astropy[1]**2 + v_itrf_astropy[2]**2))/1000.0))
+    #print("Difference (custom - astropy):")
+    #print("  dvx={:.2f} m/s, dvy={:.2f} m/s, dvz={:.2f} m/s".format(v_itrf[0]-v_itrf_astropy[0], v_itrf[1]-v_itrf_astropy[1], v_itrf[2]-v_itrf_astropy[2]))
