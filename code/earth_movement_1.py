@@ -6,9 +6,9 @@ import numpy as np
 current_jd = Time.now()
 #print(current_jd)
 time = Time(current_jd, format="jd")
-#time = Time(59000.0, format="mjd")
+time = Time(59000.0, format="mjd")
 #print(time)
-mjd = time-2400000.5
+mjd = time#-2400000.5
 #print("MJD:", mjd.value)
 un_coords = get_body('earth', time)
 
@@ -109,7 +109,7 @@ print("Galactocentric velocity norm (km/s):", vel_galactocentric_norm.to(u.km/u.
 sum_vel = vel_galactocentric_sun + vel_galactocentric_earth
 print("sum_vel =", sum_vel)
 print("sum_vel_norm = ", np.sqrt(sum_vel[0]**2 + sum_vel[1]**2 + sum_vel[2]**2).to(u.km/u.s))
-'''
+
 
 print()
 print()
@@ -130,4 +130,4 @@ vel_sum_galactocentric = sum_coordinates_galactocentric.velocity.d_xyz
 
 print("Galactocentric velocity sum (m/s):", vel_sum_galactocentric.to(u.m/u.s))
 print()
-print("Galactocentric velocity sum norm (km/s):", np.sqrt(vel_sum_galactocentric[0]**2 + vel_sum_galactocentric[1]**2 + vel_sum_galactocentric[2]**2).to(u.km/u.s))
+print("Galactocentric velocity sum norm (km/s):", np.sqrt(vel_sum_galactocentric[0]**2 + vel_sum_galactocentric[1]**2 + vel_sum_galactocentric[2]**2).to(u.km/u.s))'''

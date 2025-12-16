@@ -8,7 +8,7 @@ print("=============================================")
 t = Time(Time.now(), format="mjd")
 #print(t)
 
-def ITRS_sum_to_Galactocentric(time, w):
+def ITRS_sum_to_Galactocentric(time):
     
     #=== Koordynaty i prędkości Ziemi i Słońca w układzie barycentrycznym ICRS ===
     earth_pv = get_body_barycentric_posvel("earth", time)
@@ -26,7 +26,7 @@ def ITRS_sum_to_Galactocentric(time, w):
     vel_icrs_earth = CartesianDifferential(v_earth_icrs[0], v_earth_icrs[1], v_earth_icrs[2])
     vel_icrs_sun = CartesianDifferential(v_sun_icrs[0], v_sun_icrs[1], v_sun_icrs[2])
 
-    #=== Sum w układzie ICRS ===
+    #=== Suma w układzie ICRS ===
     sum_pos_icrs = pos_icrs_earth + pos_icrs_sun
     sum_vel_icrs = vel_icrs_earth + vel_icrs_sun
 
@@ -40,38 +40,39 @@ def ITRS_sum_to_Galactocentric(time, w):
     sum_coordinates_galactocentric = sum_coordinates_itrs.transform_to(Galactocentric())
     vel_sum_galactocentric = sum_coordinates_galactocentric.velocity.d_xyz
 
-    
-    print("mjd= "+ str(time.value),"|  pos=" , pos_galactocentric.to(u.km*10**6),"|  vel=", vel_sum_galactocentric.to(u.km/u.s))
+    #print("mjd= "+ str(time.value),"|  pos=" , pos_galactocentric.to(u.km*10**6),"|  vel=", vel_sum_galactocentric.to(u.km/u.s))
 
     #print("mjd="+ str(time.value), pos_galactocentric.to(u.km))
     #print("mjd="+ str(time.value), vel_sum_galactocentric.to(u.km/u.s))
 
-    #print("mjd="+ str(time.value), "v={:.2f}".format(np.sqrt(vel_sum_galactocentric[0]**2 + vel_sum_galactocentric[1]**2 + vel_sum_galactocentric[2]**2).to(u.km/u.s)))
+    print("mjd="+ str(time.value), "v={:.2f}".format(np.sqrt(vel_sum_galactocentric[0]**2 + vel_sum_galactocentric[1]**2 + vel_sum_galactocentric[2]**2).to(u.km/u.s)))
 
-    if w==0:
-        return pos_galactocentric
-    if w==1:
-        return vel_sum_galactocentric
+    #if w==0:
+    #    return pos_galactocentric
+    #if w==1:
+    #    return vel_sum_galactocentric
+    return pos_galactocentric
 
 
+print()
 #ITRS_sum_to_Galactocentric(t, 0)
 
 
 def plot_3d_position():
     # listy na dane
-    times = []
+    #times = []
     x_list = []
     y_list = []
     z_list = []
 
     # obliczenia dla kolejnych dni
-    for i in range(1, 60):
-        time_future = Time(t.mjd + i*10, format="mjd")
+    for i in range(0, 365*5, 20):
+        time_future = Time(t.mjd + i, format="mjd")
 
-        p = ITRS_sum_to_Galactocentric(time_future,0)
-        x, y, z = p.to_value("10^6 km")
+        # zakładam, że masz SkyCoord w Galactocentric
+        x, y, z = ITRS_sum_to_Galactocentric(time_future).to_value("AU")
+        #x, y, z = sc_gal.cartesian.xyz.to_value("kpc")
 
-        times.append(time_future.mjd)
         x_list.append(x)
         y_list.append(y)
         z_list.append(z)
@@ -80,16 +81,17 @@ def plot_3d_position():
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection="3d")
 
-    ax.plot(x_list, y_list, z_list)
-    #ax.set_xlabel("X [km]")
-    #ax.set_ylabel("Y [km]")
-    #ax.set_zlabel("Z [km]")
-    ax.set_title("Position vector trajectory")
+    ax.plot(x_list, y_list, z_list, "-o", markersize=3)
+
+    #ax.set_xlabel("X [kpc]")
+    #ax.set_ylabel("Y [kpc]")
+    #ax.set_zlabel("Z [kpc]")
+    ax.set_title("Trajectory of the Earth (Galactocentric)")
 
     plt.show()
 
 
-plot_3d_position()
+#plot_3d_position()
 
 #robi okrąg a powinna być spirala ?
 

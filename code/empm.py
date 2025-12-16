@@ -304,8 +304,8 @@ def earth_velocity_itrf_from_mjd_astropy(mjd):
 #time = Time(mjd_test, format="jd")
 print("=============================================")
 if __name__ == "__main__":
-    #mjd_test = 59000.0
-    mjd_test = 61021.5
+    mjd_test = 59000.0
+    #mjd_test = 61615.37540498899
     v_itrf = earth_velocity_itrf_from_mjd(mjd_test)
     v_itrf_astropy = earth_velocity_itrf_from_mjd_astropy(mjd_test)
     print("Earth velocity in ITRF at MJD {:.1f}:".format(mjd_test))
