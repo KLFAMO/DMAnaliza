@@ -5,10 +5,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 print("=============================================")
-t = Time(Time.now(), format="mjd")
+#t = Time(Time.now(), format="mjd")
+t = Time(59000.0, format="mjd")
 #print(t)
 
-def ITRS_sum_to_Galactocentric(time):
+def earth_galactocentric_position_velocity(t):
+    pos_e, vel_e = get_body_barycentric_posvel("earth", t)
+    earth_itrs = SkyCoord(
+        CartesianRepresentation(pos_e.xyz).with_differentials(
+            CartesianDifferential(vel_e.xyz)), frame="itrs", obstime=t)
+    
+    earth_galactocentric = earth_itrs.transform_to(Galactocentric())
+
+    print("Earth Galactocentric position (kpc):", earth_galactocentric.cartesian.xyz.to(u.kpc))
+    print("Earth Galactocentric position (au):", earth_galactocentric.cartesian.xyz.to(u.au))
+    print()
+    print("Earth Galactocentric velocity (km/s):", earth_galactocentric.velocity.d_xyz.to(u.km/u.s))
+    print("Earth Galactocentric velocity norm (km/s):", np.sqrt(earth_galactocentric.velocity.d_x**2 + earth_galactocentric.velocity.d_y**2 + earth_galactocentric.velocity.d_z**2).to(u.km/u.s))
+
+    return earth_galactocentric.cartesian.xyz, earth_galactocentric.velocity.d_xyz
+
+earth_galactocentric_position_velocity(t)
+
+
+
+
+
+def ITRS_sum_to_Galactocentric(time, w):
     
     #=== Koordynaty i prędkości Ziemi i Słońca w układzie barycentrycznym ICRS ===
     earth_pv = get_body_barycentric_posvel("earth", time)
@@ -20,6 +43,8 @@ def ITRS_sum_to_Galactocentric(time):
     v_earth_icrs = earth_pv[1].xyz.to(u.m/u.s)
     v_sun_icrs = sun_pv[1].xyz.to(u.m/u.s)
 
+
+    # ---- Earth barycentric position+velocity ----    
     pos_icrs_earth = CartesianRepresentation(p_earth_icrs[0], p_earth_icrs[1], p_earth_icrs[2] )
     pos_icrs_sun = CartesianRepresentation(p_sun_icrs[0], p_sun_icrs[1], p_sun_icrs[2] )
 
@@ -40,18 +65,14 @@ def ITRS_sum_to_Galactocentric(time):
     sum_coordinates_galactocentric = sum_coordinates_itrs.transform_to(Galactocentric())
     vel_sum_galactocentric = sum_coordinates_galactocentric.velocity.d_xyz
 
-    #print("mjd= "+ str(time.value),"|  pos=" , pos_galactocentric.to(u.km*10**6),"|  vel=", vel_sum_galactocentric.to(u.km/u.s))
-
-    #print("mjd="+ str(time.value), pos_galactocentric.to(u.km))
-    #print("mjd="+ str(time.value), vel_sum_galactocentric.to(u.km/u.s))
-
+    print("mjd= "+ str(time.value),"|  pos=" , pos_galactocentric.to(u.km*10**6),"|  vel=", vel_sum_galactocentric.to(u.km/u.s))
     print("mjd="+ str(time.value), "v={:.2f}".format(np.sqrt(vel_sum_galactocentric[0]**2 + vel_sum_galactocentric[1]**2 + vel_sum_galactocentric[2]**2).to(u.km/u.s)))
 
-    #if w==0:
-    #    return pos_galactocentric
-    #if w==1:
-    #    return vel_sum_galactocentric
-    return pos_galactocentric
+    if w==0:
+        return pos_galactocentric
+    if w==1:
+        return vel_sum_galactocentric
+    #return pos_galactocentric
 
 
 print()
