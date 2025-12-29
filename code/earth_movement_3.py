@@ -1,4 +1,4 @@
-from astropy.coordinates import get_body_barycentric_posvel, ICRS, get_body, SkyCoord, ITRS, CIRS, Galactocentric, CartesianRepresentation, CartesianDifferential
+from astropy.coordinates import ICRS, SkyCoord, ITRS, Galactocentric, CartesianRepresentation, CartesianDifferential, get_body_barycentric_posvel
 from astropy.time import Time
 import astropy.units as u
 import numpy as np
@@ -9,71 +9,58 @@ print("=============================================")
 #t = Time(Time.now(), format="mjd")
 t = Time(59000.0, format="mjd")
 #print(t)
-omega_vec = [0, 0, 7.2921150e-5] * u.rad/u.s # Earth's angular velocity
+omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
 
 point_on_earth = CartesianRepresentation(parameters.inf['UMK1']['X']*u.m,
                                                         parameters.inf['UMK1']['Y']*u.m,
                                                         parameters.inf['UMK1']['Z']*u.m)
 
 
-def ITRS_to_CIRS(t):
+def ITRS_to_ICRS(t):
     #=== Koordynaty miejsca na Ziemi w układzie ITRS (to samo co ITRF) ===
     on_earth_itrs = SkyCoord(point_on_earth, frame=ITRS(obstime=t))
-
-    on_earth_velocity = CartesianDifferential(np.cross(omega_vec.to(u.rad/u.s).value, on_earth_itrs.cartesian.xyz.to(u.m).value)*(u.m/u.s))
-
-    print("On Earth ITRS position (m):", on_earth_itrs.cartesian.xyz.to(u.m))
-    print("On Earth ITRS velocity (m/s):", on_earth_velocity.d_xyz.to(u.m/u.s))
-    print("On Earth ITRS velocity norm (m/s):", np.sqrt(on_earth_velocity.d_x**2 + on_earth_velocity.d_y**2 + on_earth_velocity.d_z**2).to(u.m/u.s))
-    print()
     
-    #=== Koordynaty i prędkości Ziemi w układzie CIRS ===
-    earth_cirs = on_earth_itrs.transform_to(CIRS())
-
-    data_with_vel = SkyCoord(point_on_earth.with_differentials(on_earth_velocity), frame=ITRS(obstime=t))
-    
-    earth_cirs_velocity = data_with_vel.transform_to(CIRS())
-
-    #earth_cirs_velocity = SkyCoord(on_earth_itrs.point_on_earth.with_differentials(on_earth_velocity), frame=CIRS())
-
-    print("On Earth CIRS position (m):", earth_cirs.cartesian.xyz.to(u.m))
-    print("Earth CIRS velocity (m/s):", earth_cirs_velocity.velocity.d_xyz.to(u.m/u.s))
-    print("Earth CIRS velocity norm (m/s):", np.sqrt(earth_cirs.velocity.d_x**2 + earth_cirs.velocity.d_y**2 + earth_cirs.velocity.d_z**2).to(u.m/u.s))
-    print()
-
-    return earth_cirs, earth_cirs_velocity
-
-ITRS_to_CIRS(t)
+    #=== Sprawdzanie czy predkość obrotowa Ziemi jest dobrze liczona ===
+    #on_earth_velocity = CartesianDifferential(np.cross(omega_vec.to(1/u.s).value, on_earth_itrs.cartesian.xyz.to(u.m).value)*(u.m/u.s))
+    #print("On Earth ITRS position:", on_earth_itrs.cartesian.xyz.to(u.km))
+    #print("On Earth velocity:", on_earth_velocity.d_xyz.to(u.km/u.s))
+    #print("On Earth velocity norm:", np.sqrt(on_earth_velocity.d_x**2 + on_earth_velocity.d_y**2 + on_earth_velocity.d_z**2).to(u.m/u.s))
+    #print()
 
 
+    #=== Transformacja położenia do układu ICRS ===
+    on_earth_icrs = on_earth_itrs.transform_to(ICRS())
 
+    #=== Koordynaty i prędkości Ziemi w układzie ICRS ===
+    pos_e, vel_e = get_body_barycentric_posvel("earth", t)
+    earth_icrs = SkyCoord(CartesianRepresentation(pos_e.xyz).with_differentials(CartesianDifferential(vel_e.xyz)),frame=ICRS(),obstime=t)
 
-def CIRS_to_ICRS(t):
-    earth_cirs = ITRS_to_CIRS(t)
-    
-    #=== Koordynaty Ziemi w układzie ICRS ===
-    earth_icrs = earth_cirs.transform_to(ICRS())
+    #=== Obliczanie prędkości obrotowej w układzie ICRS ===
+    r_icrs = (on_earth_icrs.cartesian.xyz - earth_icrs.cartesian.xyz).to(u.m)
+    v_rot_icrs = np.cross(omega_vec, r_icrs).to(u.m/u.s)
 
-    print("Earth ICRS position (au):", earth_icrs.cartesian.xyz.to(u.au))
-    #print("Earth ICRS velocity (m/s):", earth_icrs.velocity.d_xyz.to(u.km/u.s))
-    #print("Earth ICRS velocity norm (km/s):", np.sqrt(earth_icrs.velocity.d_x**2 + earth_icrs.velocity.d_y**2 + earth_icrs.velocity.d_z**2).to(u.km/u.s))
+    print("On Earth ICRS - Earth ICRS position:", r_icrs.to(u.km))
+    #print("On Earth rotational velocity in ICRS:", v_rot_icrs.to(u.km/u.s))
+    print("On Earth rotational velocity norm in ICRS:", np.sqrt(v_rot_icrs[0]**2 + v_rot_icrs[1]**2 + v_rot_icrs[2]**2).to(u.m/u.s))
     print()
 
-    return earth_icrs
+    #=== Całkowita prędkość miejsca na Ziemi w układzie ICRS ===
+    v_earth_icrs = vel_e.xyz.to(u.m/u.s)
+    v_total_icrs = v_earth_icrs + v_rot_icrs
 
-#CIRS_to_ICRS(t)
+    print("Prędkość orbitalna w ICRS:", np.linalg.norm(v_earth_icrs).to(u.km/u.s))
+    print("Prędkość obrotowa w ICRS:", np.linalg.norm(v_rot_icrs).to(u.km/u.s))
+    print("Całkowita prędkość w ICRS:", np.linalg.norm(v_total_icrs).to(u.km/u.s))
 
-def ICRS_to_Galactocentric(t):
-    earth_icrs = CIRS_to_ICRS(t)
-    
-    #=== Koordynaty i prędkości Ziemi w układzie Galactocentric ===
-    earth_galactocentric = earth_icrs.transform_to(Galactocentric())
+    return on_earth_icrs, r_icrs, v_total_icrs
 
-    #print("Earth Galactocentric position (kpc):", earth_galactocentric.cartesian.xyz.to(u.kpc))
-    print("Earth Galactocentric position (au):", earth_galactocentric.cartesian.xyz.to(u.au))
-    print("Earth Galactocentric velocity (km/s):", earth_galactocentric.velocity.d_xyz.to(u.km/u.s))
-    print("Earth Galactocentric velocity norm (km/s):", np.sqrt(earth_galactocentric.velocity.d_x**2 + earth_galactocentric.velocity.d_y**2 + earth_galactocentric.velocity.d_z**2).to(u.km/u.s))
 
-    return earth_galactocentric
+ITRS_to_ICRS(t)
 
-#ICRS_to_Galactocentric(t)
+
+
+#def ICRS_to_Galactocentric(t):
+#    on_earth_icrs, r_icrs, v_icrs = ITRS_to_ICRS(t)
+
+
+
