@@ -51,16 +51,42 @@ def ITRS_to_ICRS(t):
     print("Prędkość orbitalna w ICRS:", np.linalg.norm(v_earth_icrs).to(u.km/u.s))
     print("Prędkość obrotowa w ICRS:", np.linalg.norm(v_rot_icrs).to(u.km/u.s))
     print("Całkowita prędkość w ICRS:", np.linalg.norm(v_total_icrs).to(u.km/u.s))
+    print()
 
     return on_earth_icrs, r_icrs, v_total_icrs
 
 
-ITRS_to_ICRS(t)
+#ITRS_to_ICRS(t)
 
 
 
-#def ICRS_to_Galactocentric(t):
-#    on_earth_icrs, r_icrs, v_icrs = ITRS_to_ICRS(t)
+def ICRS_to_Galactocentric(t):
+    # --- bierzemy wynik z pierwszej funkcji ---
+    on_earth_icrs, r_icrs, v_total_icrs = ITRS_to_ICRS(t)
 
+    # --- tworzymy SkyCoord w ICRS z PRĘDKOŚCIĄ ---
+    coord_icrs = SkyCoord(
+        CartesianRepresentation(
+            on_earth_icrs.cartesian.xyz
+        ).with_differentials(
+            CartesianDifferential(v_total_icrs)
+        ),
+        frame=ICRS(),
+        obstime=t
+    )
 
+    # --- transformacja do Galactocentric ---
+    coord_gal = coord_icrs.transform_to(Galactocentric())
 
+    # --- wyciągamy wektory ---
+    pos_gal = coord_gal.cartesian.xyz
+    vel_gal = coord_gal.velocity.d_xyz
+
+    # --- wypisywanie kontrolne ---
+    print("Pozycja w Galactocentric:", pos_gal.to(u.kpc))
+    print("Prędkość w Galactocentric:", vel_gal.to(u.km/u.s))
+    print("Prędkość w Galactocentric (norma):", np.linalg.norm(vel_gal.to_value(u.km/u.s)) * u.km/u.s)
+
+    return pos_gal, vel_gal
+
+ICRS_to_Galactocentric(t)
