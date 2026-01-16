@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import parameters
 
+print("========================================================================================")
 galactocentric_frame_defaults.set('v4.0')
 #galactocentric_frame_defaults.get_from_registry("v4.0")["references"]
 print(ITRS())
@@ -12,19 +13,19 @@ print(ICRS())
 print(Galactocentric())
 
 
-print("=============================================")
+print("----------------------------------------------------------------------------------------")
 #t = Time(Time.now(), format="mjd")
 t = Time(59000.0, format="mjd")
 #print(t)
 omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
 
-point_on_earth = CartesianRepresentation(parameters.inf['UMK1']['X']*u.m,
-                                                        parameters.inf['UMK1']['Y']*u.m,
-                                                        parameters.inf['UMK1']['Z']*u.m)
+# point_on_earth = CartesianRepresentation(parameters.inf['UMK1']['X']*u.m,
+#                                                         parameters.inf['UMK1']['Y']*u.m,
+#                                                         parameters.inf['UMK1']['Z']*u.m)
 # point_on_earth = CartesianRepresentation(parameters.inf['NMIJ']['X']*u.m,
 #                                                         parameters.inf['NMIJ']['Y']*u.m,
 #                                                         parameters.inf['NMIJ']['Z']*u.m)
-#point_on_earth = CartesianRepresentation(3644273*u.m,  1226649*u.m,  5071736*u.m)
+point_on_earth = CartesianRepresentation(0*u.m,  0*u.m,  0*u.m)
 
 
 def ITRS_to_ICRS(t):
@@ -112,12 +113,12 @@ def ICRS_to_Galactocentric(t):
         obstime=t
     ).transform_to(Galactocentric()).cartesian.xyz  
 
-    pos_gal = pos_gal - pos_gal_sun
+    #pos_gal = pos_gal - pos_gal_sun
     #print()
     #print('pos_gal:', pos_gal)
 
 
-    # --- wypisywanie kontrolne ---
+    #--- wypisywanie kontrolne ---
     # print()
     # print("Pozycja w Galactocentric:", pos_gal.to(u.au))
     # print("Prędkość w Galactocentric:", vel_gal.to(u.km/u.s))
@@ -127,5 +128,7 @@ def ICRS_to_Galactocentric(t):
 
 
 #ICRS_to_Galactocentric(t)
-print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t))
+print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t)[0].to(u.pc), ICRS_to_Galactocentric(t)[1].to(u.km/u.s))
 print("Norma prędkości w Galactocentric:", np.linalg.norm(ICRS_to_Galactocentric(t)[1].to_value(u.km/u.s)) * u.km/u.s)
+
+# różnica czasu = (połozenie jednego - drugiego)/v

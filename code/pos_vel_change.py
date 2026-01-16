@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from earth_movement_3 import ICRS_to_Galactocentric
 
-
 def set_axes_equal(ax):
     x_limits = ax.get_xlim3d()
     y_limits = ax.get_ylim3d()
@@ -24,11 +23,13 @@ def set_axes_equal(ax):
     ax.set_ylim3d(mid_y - max_range, mid_y + max_range)
     ax.set_zlim3d(mid_z - max_range, mid_z + max_range)
 
+print("========================================================================================")
 
+# ---- Zmiana położenia i prędkości z funkcji w earth_movement_3.py ----
 def earth_vel_change():
 
-    times = Time(59000.0, format="mjd") + np.arange(0, 365*1, 30) * u.day
-    # ↑ np. 5 lat, co 30 dni (więcej = gęściej)
+    #times = Time(59000.0, format="mjd") + np.arange(0, 365*1, 30) * u.day
+    times = Time(59000.0, format="mjd") + np.arange(0, 20*100, 20) * u.day # ilość dni * ilość kroków, co tyle samo dni (krok)
     #print("Czas poczatkowy:", Time(59000.0, format="mjd"))
 
     x, y, z = [], [], []
@@ -76,13 +77,12 @@ def earth_vel_change():
 
     return x, y, z, vx, vy, vz, x0, y0, z0
 
-
-#rint((earth_vel_change()[3]**2 + earth_vel_change()[4]**2 + earth_vel_change()[5]**2)**0.5)
-
+#print((earth_vel_change()[3]**2 + earth_vel_change()[4]**2 + earth_vel_change()[5]**2)**0.5)
 
 
 
 
+# ---- Wykres zmiany położenia z funkcji earth_vel_change ----
 def plot_earth_velocity_change():
     fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection="3d")
@@ -122,41 +122,92 @@ def plot_earth_velocity_change():
     plt.show()
 
 
-#lot_earth_velocity_change()
 
 
+# --- Zmiana pozycji wyliczona z prędkości ---
 def pos_from_vel():
-    t = 30 * u.day
-    #t = np.arange(0, 365*1, 30) * u.day
+    t = 20 * 86400 # dni w sekundach (krok)
+    
+    x = [0]
+    y = [0] 
+    z = [0]
+    tt = [0]
 
-    x = 0
-    y = 0
-    z = 0
+    for i in range(earth_vel_change()[0].shape[0]):
+        x.append(x[-1] + t*earth_vel_change()[3][i])  # vx w km/s
+        y.append(y[-1] + t*earth_vel_change()[4][i])  # vy
+        z.append(z[-1] + t*earth_vel_change()[5][i])  # vz
+        tt.append(tt[-1] + t)
 
-    x = x + t*earth_vel_change()[3]  # vx
-    y = y + t*earth_vel_change()[4]  # vy
-    z = z + t*earth_vel_change()[5]  # vz
-
-    return x, y, z
+        print(t*(i+1)/86400)
 
 
-print(pos_from_vel())
+    return x, y, z, tt # w km
 
+#pos_from_vel()
+
+
+
+# ---- Zapis pozycji do pliku ----
+def save_pos_to_file():
+    tt = np.array(pos_from_vel()[3])/86400
+    x, y, z = np.array(pos_from_vel()[0]) / 1.496e+8, np.array(pos_from_vel()[1]) / 1.496e+8, np.array(pos_from_vel()[2]) / 1.496e+8    
+
+    data = np.column_stack((tt, x, y, z))
+
+    with open("pos_do_wykresu4.txt", "w") as f:
+        f.write("#t[dni]   x [AU]    y [AU]    z [AU]\n")
+        np.savetxt(f, data, fmt="%.4e")
+
+save_pos_to_file()
+
+
+
+# ---- Wykres pozycji wyliczonej z prędkości ----
 def plot_pos_from_vel():
     fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection="3d")
 
-    ax.plot(pos_from_vel()[0], pos_from_vel()[1], pos_from_vel()[2], lw=1, color="blue", label="Pozycja z prędkości")
+    #ax.plot(pos_from_vel()[0], pos_from_vel()[1], pos_from_vel()[2], lw=1, color="blue", label="Pozycja z prędkości")
+    ax.plot(x, y, z, lw=1, color="blue", label="Pozycja z prędkości")
 
     ax.set_xlabel("X [au]")
     ax.set_ylabel("Y [au]")
     ax.set_zlabel("Z [au]")
 
-    ax.set_title("Pozycja punktu na Ziemi wyliczona z prędkości w układzie Galactocentric")
+    #ax.set_title(f"Pozycja punktu na Ziemi po {t*5} dniach obliczona z prędkości")
     ax.legend()
 
     set_axes_equal(ax)
 
     plt.show()
 
-plot_pos_from_vel()
+#plot_pos_from_vel()
+
+
+
+# ---- Wykres pozycji z pliku ----
+def plot_from_file():
+    data = np.loadtxt("pos_do_wykresu4.txt", comments="#")
+    tt = data[:,0]
+    x = data[:,1]
+    y = data[:,2]
+    z = data[:,3]
+
+    fig = plt.figure(figsize=(9, 9))
+    ax = fig.add_subplot(111, projection="3d")
+
+    ax.plot(x, y, z, lw=1, color="green", label="Pozycja z pliku po {t*5} dni")
+
+    ax.set_xlabel("X [au]")
+    ax.set_ylabel("Y [au]")
+    ax.set_zlabel("Z [au]")
+
+    ax.legend()
+
+    #set_axes_equal(ax)
+
+    plt.show()
+
+
+plot_from_file()
