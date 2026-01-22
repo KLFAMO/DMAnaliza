@@ -159,7 +159,7 @@ def save_pos_to_file():
         f.write("#t[dni]   x [AU]    y [AU]    z [AU]\n")
         np.savetxt(f, data, fmt="%.4e")
 
-save_pos_to_file()
+#save_pos_to_file()
 
 
 
@@ -210,4 +210,4 @@ def plot_from_file():
     plt.show()
 
 
-plot_from_file()
+#plot_from_file()
