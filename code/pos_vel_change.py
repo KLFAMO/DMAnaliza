@@ -25,11 +25,13 @@ def set_axes_equal(ax):
 
 print("========================================================================================")
 
+
 # ---- Zmiana położenia i prędkości z funkcji w earth_movement_3.py ----
-def earth_vel_change():
+def earth_vel_change(krok, mnoznik):
 
     #times = Time(59000.0, format="mjd") + np.arange(0, 365*1, 30) * u.day
-    times = Time(59000.0, format="mjd") + np.arange(0, 20*100, 20) * u.day # ilość dni * ilość kroków, co tyle samo dni (krok)
+    #times = Time(59000.0, format="mjd") + np.arange(0, 10*30, 10) * u.day # ilość dni * ilość kroków, co tyle samo dni (krok)
+    times = Time(59000.0, format="mjd") + np.arange(0, krok*mnoznik, krok) * u.day # ilość dni * ilość kroków, co tyle samo dni (krok)
     #print("Czas poczatkowy:", Time(59000.0, format="mjd"))
 
     x, y, z = [], [], []
@@ -77,7 +79,7 @@ def earth_vel_change():
 
     return x, y, z, vx, vy, vz, x0, y0, z0
 
-#print((earth_vel_change()[3]**2 + earth_vel_change()[4]**2 + earth_vel_change()[5]**2)**0.5)
+#print((earth_vel_change(10,20)[3]**2 + earth_vel_change(10,20)[4]**2 + earth_vel_change(10,20)[5]**2)**0.5)
 
 
 
@@ -125,18 +127,18 @@ def plot_earth_velocity_change():
 
 
 # --- Zmiana pozycji wyliczona z prędkości ---
-def pos_from_vel():
-    t = 20 * 86400 # dni w sekundach (krok)
+def pos_from_vel(krok, mnoznik):
+    t = krok * 86400 # dni w sekundach (krok)
     
     x = [0]
     y = [0] 
     z = [0]
     tt = [0]
 
-    for i in range(earth_vel_change()[0].shape[0]):
-        x.append(x[-1] + t*earth_vel_change()[3][i])  # vx w km/s
-        y.append(y[-1] + t*earth_vel_change()[4][i])  # vy
-        z.append(z[-1] + t*earth_vel_change()[5][i])  # vz
+    for i in range(earth_vel_change(krok, mnoznik)[0].shape[0]):
+        x.append(x[-1] + t*earth_vel_change(krok, mnoznik)[3][i])  # vx w km/s
+        y.append(y[-1] + t*earth_vel_change(krok, mnoznik)[4][i])  # vy
+        z.append(z[-1] + t*earth_vel_change(krok, mnoznik)[5][i])  # vz
         tt.append(tt[-1] + t)
 
         print(t*(i+1)/86400)
@@ -144,22 +146,22 @@ def pos_from_vel():
 
     return x, y, z, tt # w km
 
-#pos_from_vel()
+#pos_from_vel(10,10)
 
 
 
 # ---- Zapis pozycji do pliku ----
-def save_pos_to_file():
-    tt = np.array(pos_from_vel()[3])/86400
-    x, y, z = np.array(pos_from_vel()[0]) / 1.496e+8, np.array(pos_from_vel()[1]) / 1.496e+8, np.array(pos_from_vel()[2]) / 1.496e+8    
+def save_pos_to_file(krok, mnoznik):
+    tt = np.array(pos_from_vel(krok, mnoznik)[3])/86400
+    x, y, z = np.array(pos_from_vel(krok, mnoznik)[0]) / 1.496e+8, np.array(pos_from_vel(krok, mnoznik)[1]) / 1.496e+8, np.array(pos_from_vel(krok, mnoznik)[2]) / 1.496e+8    
 
     data = np.column_stack((tt, x, y, z))
 
-    with open("pos_do_wykresu4.txt", "w") as f:
+    with open("figures/earth_movement/pos_100_20.txt", "w") as f:
         f.write("#t[dni]   x [AU]    y [AU]    z [AU]\n")
         np.savetxt(f, data, fmt="%.4e")
 
-#save_pos_to_file()
+#save_pos_to_file(100,20)
 
 
 
@@ -187,9 +189,9 @@ def plot_pos_from_vel():
 
 
 # ---- Wykres pozycji z pliku ----
-def plot_from_file():
-    data = np.loadtxt("pos_do_wykresu4.txt", comments="#")
-    tt = data[:,0]
+def plot_from_file(krok, mnoznik):
+    data = np.loadtxt("figures/earth_movement/pos_100_20.txt", comments="#")
+    #tt = data[:,0]
     x = data[:,1]
     y = data[:,2]
     z = data[:,3]
@@ -197,7 +199,7 @@ def plot_from_file():
     fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection="3d")
 
-    ax.plot(x, y, z, lw=1, color="green", label="Pozycja z pliku po {t*5} dni")
+    ax.plot(x, y, z, lw=1, color="green", label=f"Pozycja z pliku po {krok*mnoznik} dniach")
 
     ax.set_xlabel("X [au]")
     ax.set_ylabel("Y [au]")
@@ -205,9 +207,9 @@ def plot_from_file():
 
     ax.legend()
 
-    #set_axes_equal(ax)
+    set_axes_equal(ax)
 
     plt.show()
 
 
-#plot_from_file()
+plot_from_file(100,20)
