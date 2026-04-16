@@ -18,6 +18,9 @@ import parameters as par
 from input_data import InputData
 import matplotlib.pyplot as plt
 
+from earth_movement import earth_velocity # funkcja prędkości ziemi
+
+
 etaum = 0
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
 
@@ -67,7 +70,8 @@ def calc_single(p):
     mjd = p['mjd']
     v = p['v']
     D = p['D']
-    vec = p['vec']
+    #vec = p['vec']
+    vec = earth_velocity(mjd) # wektory prędkości jako wynik kodu earth_movement
     d = p['data']
 
     global etaum

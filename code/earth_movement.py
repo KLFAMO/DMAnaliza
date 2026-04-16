@@ -130,7 +130,8 @@ def earth_velocity(mjd):
     """
     Calculate Earth's velocity in Galactocentric frame for given MJD.
     """
-    pass
+    return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
+
 
 if __name__ == "__main__":
     #ICRS_to_Galactocentric(t)
