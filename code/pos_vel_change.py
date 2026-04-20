@@ -2,7 +2,7 @@ from astropy.time import Time
 import astropy.units as u
 import numpy as np
 import matplotlib.pyplot as plt
-from earth_movement_3 import ICRS_to_Galactocentric
+from earth_movement import ICRS_to_Galactocentric
 
 def set_axes_equal(ax):
     x_limits = ax.get_xlim3d()
@@ -157,11 +157,11 @@ def save_pos_to_file(krok, mnoznik):
 
     data = np.column_stack((tt, x, y, z))
 
-    with open("figures/earth_movement/pos_100_20.txt", "w") as f:
+    with open("figures/earth_movement/pos_75_10.txt", "w") as f:
         f.write("#t[dni]   x [AU]    y [AU]    z [AU]\n")
         np.savetxt(f, data, fmt="%.4e")
 
-#save_pos_to_file(100,20)
+save_pos_to_file(75,35)
 
 
 
@@ -190,7 +190,7 @@ def plot_pos_from_vel():
 
 # ---- Wykres pozycji z pliku ----
 def plot_from_file(krok, mnoznik):
-    data = np.loadtxt("figures/earth_movement/pos_100_20.txt", comments="#")
+    data = np.loadtxt("figures/earth_movement/pos_75_10.txt", comments="#")
     #tt = data[:,0]
     x = data[:,1]
     y = data[:,2]
@@ -212,4 +212,4 @@ def plot_from_file(krok, mnoznik):
     plt.show()
 
 
-plot_from_file(100,20)
+plot_from_file(75,10) #krok i mnożnik
