@@ -112,7 +112,7 @@ print("=========================================================================
 
 # ---- Wykres pozycji z pliku ----
 def plot_from_file(krok, mnoznik):
-    data = np.loadtxt("figures/earth_movement/pos_100_20.txt", comments="#")
+    data = np.loadtxt("figures/earth_movement/pos_25_40.txt", comments="#")
     #tt = data[:,0]
     x = data[:,1]
     y = data[:,2]
@@ -129,9 +129,9 @@ def plot_from_file(krok, mnoznik):
 
     ax.legend()
 
-    set_axes_equal(ax)
+    #set_axes_equal(ax)
 
     plt.show()
 
 
-plot_from_file(100,20) #krok i mnożnik
+plot_from_file(25,40) #krok i mnożnik

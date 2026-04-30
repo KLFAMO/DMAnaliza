@@ -3,24 +3,17 @@ from astropy.time import Time
 import astropy.units as u
 import numpy as np
 import matplotlib.pyplot as plt
-import parameters
 
 print("========================================================================================")
-galactocentric_frame_defaults.set('v4.0')
-print(ITRS())
-print(ICRS())
-print(Galactocentric())
 
-print("----------------------------------------------------------------------------------------")
-#t = Time(Time.now(), format="mjd")
-t = Time(59000.0, format="mjd")
+t = Time(Time.now(), format="mjd")
 omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
 point_on_earth = CartesianRepresentation(0*u.m,  0*u.m,  0*u.m)
 
-
+#t = Time(59000.0, format="mjd")
 
 def ITRS_to_ICRS(t):
-    #=== Koordynaty miejsca na Ziemi w układzie ITRS (to samo co ITRF) ===
+    #=== Koordynaty miejsca na Ziemi w układzie ITRS ===
     on_earth_itrs = SkyCoord(point_on_earth, frame=ITRS(obstime=t))
     
     #=== Sprawdzanie czy predkość obrotowa Ziemi jest dobrze liczona ===
@@ -32,6 +25,8 @@ def ITRS_to_ICRS(t):
     #=== Koordynaty i prędkości Ziemi w układzie ICRS ===
     pos_e, vel_e = get_body_barycentric_posvel("earth", t)
     earth_icrs = SkyCoord(CartesianRepresentation(pos_e.xyz).with_differentials(CartesianDifferential(vel_e.xyz)),frame=ICRS(),obstime=t)
+    #cr = CartesianRepresentation(pos_e.xyz).with_differentials(CartesianDifferential(vel_e.xyz))
+    #earth_icrs = SkyCoord(cr, frame=ICRS(), obstime=t)
 
     #=== Obliczanie prędkości obrotowej w układzie ICRS ===
     r_icrs = (on_earth_icrs.cartesian.xyz - earth_icrs.cartesian.xyz).to(u.m)
@@ -68,14 +63,6 @@ def ICRS_to_Galactocentric(t):
     pos_gal = coord_gal.cartesian.xyz
     vel_gal = coord_gal.velocity.d_xyz
     
-    # --- pozycja Słońca w Galactocentric (do ewentualnego odjęcia) ---
-    pos_gal_sun = SkyCoord(
-        CartesianRepresentation(
-            get_body_barycentric_posvel("sun", t)[0].xyz
-        ),
-        frame=ICRS(),
-        obstime=t
-    ).transform_to(Galactocentric()).cartesian.xyz  
 
     return pos_gal, vel_gal
 
