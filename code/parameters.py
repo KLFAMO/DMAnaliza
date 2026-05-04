@@ -48,7 +48,11 @@ mjds_dict_osc ={
     'c2' : np.arange(58916,58935 ,0.005),  #every 400s
 }
 
-mjds_dict = mjds_dict_fast
+mjds_dict_rand = {
+    'c1' : np.arange(58000,58000.1 ,0.00005),
+}
+
+mjds_dict = mjds_dict_rand
 
 save_mjd_calcs = False
 

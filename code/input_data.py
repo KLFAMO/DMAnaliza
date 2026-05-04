@@ -4,6 +4,7 @@ import os
 import pulse
 # import tools as tls
 import timanda.tserie as tls
+from timanda.mtserie import MTSerie
 import matplotlib.pyplot as plt
 
 logging.basicConfig(
@@ -30,10 +31,28 @@ class InputData:
                 is_lab_file = os.path.isfile(lab_path)
                 logging.info(f"is_lab_file: {is_lab_file}")
                 if is_lab_file:
-                    if lab not in self.loaded_labs:
-                        self.loaded_labs.append(lab)
-                        self.d[lab] = tls.MTSerie(lab, color=self.inf[lab]['col'])
+                    self.loaded_labs.append(lab)
+                    self.d[lab] = MTSerie(lab, color=self.inf[lab]['col'])
                     self.d[lab].add_mjdf_from_file( lab_path )
+    
+    def generate_random_data(self, from_mjd, to_mjd, dt_s=1, mean_val=0, std_val=1):
+        """
+        Generate random data for testing purposes.
+
+        Parameters:
+        from_mjd (float): Starting MJD
+        to_mjd (float): Ending MJD
+        dt_s (float): Sampling period in seconds (default 1)
+        mean_val (float): Mean value of the random data (default 0)
+        std_val (float): Standard deviation of the random data (default 1)
+        """
+        for lab in self.labs:
+            logging.info("-------------------")
+            logging.info(f"Generating random data for lab: {lab}")
+            for campaign in self.campaigns:
+                self.loaded_labs.append(lab)
+                self.d[lab] = MTSerie.generate_random(from_mjd, to_mjd, dt_s, mean_val, std_val)
+
     
     def split(self, min_gap_s=12):
         for lab in self.loaded_labs:
@@ -81,6 +100,11 @@ class InputData:
             plt.savefig(file_name)
         else:
             plt.show()
+    
+    def print_info(self):
+        for lab in self.loaded_labs:
+            print(lab)
+            print(self.d[lab])
 
     def add_pulse(self, mjd, amplitude, size, vec, speed):
         """
