@@ -18,7 +18,7 @@ import parameters as par
 from input_data import InputData
 import matplotlib.pyplot as plt
 
-from earth_movement_clean import earth_velocity # funkcja prędkości ziemi
+from code.earth_movement import earth_velocity # funkcja prędkości ziemi
 
 
 etaum = 0
