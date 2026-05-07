@@ -218,6 +218,6 @@ if __name__ == "__main__":
         out_path.mkdir()
     print(project_path)
 
-    f = open('../out/time.dat', 'a')
+    f = open(out_path / 'time.dat', 'a')
     f.write(f"\n{(time.time()-time_all_start)/60.} min")
     f.close()

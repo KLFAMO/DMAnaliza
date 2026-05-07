@@ -92,14 +92,30 @@ class InputData:
         for lab in self.loaded_labs:
             self.d[lab].getrange_on_self(from_mjd, to_mjd)
     
-    def plot(self, file_name='indata.png', savefig=True):
-        for lab in self.loaded_labs:
-            # self.d[lab].rm_dc_each()
-            self.d[lab].plot(show=0)
+    # def plot(self, file_name='indata.png', savefig=True, split_horizontal=0):
+    #     for i, lab in enumerate(self.loaded_labs):
+    #         print(f"lab: {lab}, {i}")
+    #         self.d[lab].plot(show=0, val_offset=split_horizontal*i)
+    #     if savefig:
+    #         plt.savefig(file_name)
+    #     else:
+    #         plt.show()
+
+    def plot(self, file_name='indata.png', savefig=True, split_horizontal=0):
+        """Plot all labs data in separated subplots."""
+        num_labs = len(self.loaded_labs)
+        fig, axes = plt.subplots(num_labs, 1, figsize=(10, 5 * num_labs), sharex=True)
+        for i, lab in enumerate(self.loaded_labs):
+            print(f"lab: {lab}, {i}")
+            self.d[lab].plot(ax=axes[i], show=0)
+            axes[i].set_title(f"Lab: {lab}")
+        plt.xlabel("MJD")
+        plt.tight_layout()
         if savefig:
             plt.savefig(file_name)
         else:
             plt.show()
+       
     
     def print_info(self):
         for lab in self.loaded_labs:
