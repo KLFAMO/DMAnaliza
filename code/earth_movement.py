@@ -14,6 +14,7 @@ point_on_earth = CartesianRepresentation(0*u.m,  0*u.m,  0*u.m)
 
 def ITRS_to_ICRS(t):
     #=== Koordynaty miejsca na Ziemi w układzie ITRS ===
+    t = Time(t, format="mjd")
     on_earth_itrs = SkyCoord(point_on_earth, frame=ITRS(obstime=t))
     
     #=== Sprawdzanie czy predkość obrotowa Ziemi jest dobrze liczona ===
@@ -43,6 +44,7 @@ def ITRS_to_ICRS(t):
 
 def ICRS_to_Galactocentric(t):
     # --- bierzemy wynik z pierwszej funkcji ---
+    t = Time(t, format="mjd")
     on_earth_icrs, r_icrs, v_total_icrs = ITRS_to_ICRS(t)
 
     # --- tworzymy SkyCoord w ICRS z PRĘDKOŚCIĄ ---
@@ -67,14 +69,23 @@ def ICRS_to_Galactocentric(t):
     return pos_gal, vel_gal
 
 
+# def earth_vel_vector(mjd):
+#     """
+#     Calculate Earth's velocity in Galactocentric frame for given MJD.
+#     """
+#     return ICRS_to_Galactocentric(mjd)[0].to(u.m/u.s)
+
 
 def earth_velocity(mjd):
     """
     Calculate Earth's velocity in Galactocentric frame for given MJD.
     """
+    #return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
     return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
 
 
 if __name__ == "__main__":
     print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t)[0].to(u.pc), ICRS_to_Galactocentric(t)[1].to(u.km/u.s))
     print("Norma prędkości w Galactocentric:", np.linalg.norm(ICRS_to_Galactocentric(t)[1].to_value(u.km/u.s)) * u.km/u.s)
+    print(earth_velocity(t))
+    print(np.linalg.norm(earth_velocity(t)))

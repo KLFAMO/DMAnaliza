@@ -180,6 +180,7 @@ if __name__ == "__main__":
     time_all_start = time.time()
     mjd_ranges = list(par.mjds_dict.values())
     mjds_chain = list(chain.from_iterable(mjd_ranges))
+    #v = np.linalg.norm(earth_velocity(mjd)).value
     
     for D in par.Ds:
         print('event length [s]: ', D/par.v)
@@ -188,7 +189,7 @@ if __name__ == "__main__":
             params = [{
                     'mjd':mjd,
                     'D':D,
-                    'v':par.v,          # tu dać prędkość z mojego programu
+                    'v':np.linalg.norm(earth_velocity(mjd)).value,          # tu dać prędkość z mojego programu
                     'vec':vec,          # tu dać wektor tej prędkości
                     'data':d,
                 } for mjd in mjds_chain]
