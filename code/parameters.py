@@ -1,7 +1,8 @@
 import numpy as np
 
-labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
-# labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
+# labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
+# labs = ['UMK1', 'NIST', 'NICT']
 
 # Coordinates and other info about labs
 # X,Y,Z in meters in ITRF 2014
@@ -23,7 +24,7 @@ lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
 # calc loop parameters
 v = 230000  # m/s   - speed of the Earth in space
 
-vecs = [ [1,1,1], ] # direction vectors
+vecs = [ [1,1,1], [1,0,0]] # direction vectors
 
 # Ds = [ 20*v, 50*v, 100*v, 150*v]
 Ds = [ t*v for t in range(12,14)] # sizes in meters
