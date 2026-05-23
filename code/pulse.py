@@ -1,7 +1,8 @@
 import logging
 import numpy as np
 import parameters as par
-import timanda.tserie as tls
+import timanda.mtserie as mtserie
+import timanda.tserie as tserie
 
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
 
@@ -22,7 +23,7 @@ def generate_mts_pulse(lab, mjd, amplitude, size, vec, speed):
     shmjd = sh/86400     #calculate mjd shift (delay) for given lab
     mjd_tab = np.arange(start=mjd+shmjd, stop=end_mjd+shmjd, step=0.00001)
     val_tab = np.array([servo_response(x-mjd-shmjd, A, etaum) for x in mjd_tab])
-    mts = tls.MTSerie(TSerie=tls.TSerie(mjd=mjd_tab, val=val_tab))
+    mts = mtserie.MTSerie(tseries=[tserie.TSerie(mjd=mjd_tab, val=val_tab)])
     return mts
 
 def servo_response(x, A, etaum):

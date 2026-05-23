@@ -18,8 +18,8 @@ inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5
         'PTB':{'col':'brown', 'atom':'87Sr', 'X':3836112,  'Y':708145,   'Z':5046077, 'servo_time_s': 20},
 }
 
-lnum = {'UMK1':0, 'UMK2':1, 'NIST':2, 'NPLSr':3, 'NPLYb':4,
-        'NICT':5, 'SYRTE':6, 'NMIJ':7, 'KRISS':8, 'PTB':9}
+# Generate lnum dynamically based on the current labs list
+lnum = {lab: idx for idx, lab in enumerate(labs)}
 
 # calc loop parameters
 v = 230000  # m/s   - speed of the Earth in space

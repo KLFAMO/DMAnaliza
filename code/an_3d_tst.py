@@ -30,6 +30,7 @@ def get_d():
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     # indat.load_data_from_raw_files()
     indat.generate_random_data(from_mjd=58000, to_mjd=58000.1, dt_s=2, mean_val=0, std_val=1)
+    indat.add_pulse(mjd=58000.02, amplitude=2, size=50e6, vec=[1,1,1], speed=par.v)
     # indat.plot(file_name='indata1.png')
     # indat.split(min_gap_s=12)
     # indat.rm_dc_each()
