@@ -54,7 +54,7 @@ mjds_dict_rand = {
 
 mjds_dict = mjds_dict_rand
 
-save_mjd_calcs = False
+save_mjd_calcs = True
 
 default_servo_time_s = 30
 min_required_clocks = 2

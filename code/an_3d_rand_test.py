@@ -184,27 +184,27 @@ if __name__ == "__main__":
     
     for D in par.Ds:
         print('event length [s]: ', D/par.v)
-        for vec in par.vecs:
-            # start = time.time()
-            params = [{
-                    'mjd':mjd,
-                    'D':D,
-                    'v':np.linalg.norm(earth_velocity(mjd)).value,          # tu dać prędkość z mojego programu
-                    'vec':vec,          # tu dać wektor tej prędkości
-                    'data':d,
-                } for mjd in mjds_chain]
-            if par.use_multiprocessing:
-                with multiprocessing.Pool(processes=par.processes_number) as pool:
-                    out = pool.map(calc_for_single_mjd, params)
-            else:
-                out = [calc_for_single_mjd(p) for p in params]
-            out = [ x for x in out if x!=None]
-            if out:
-                calc_results_for_length(out, D, par.expected_event_to_event_mjd)
-            if par.save_mjd_calcs: 
-                fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
-                outdat = np.array(out)
-                np.save(os.path.join(project_path, 'out', 'out50abc_'+fname), outdat)
+
+        # start = time.time()
+        params = [{
+                'mjd':mjd,
+                'D':D,
+                'v':np.linalg.norm(earth_velocity(mjd)).value,          # tu dać prędkość z mojego programu
+                'vec':earth_velocity(mjd),          # tu dać wektor tej prędkości
+                'data':d,
+            } for mjd in mjds_chain]
+        if par.use_multiprocessing:
+            with multiprocessing.Pool(processes=par.processes_number) as pool:
+                out = pool.map(calc_for_single_mjd, params)
+        else:
+            out = [calc_for_single_mjd(p) for p in params]
+        out = [ x for x in out if x!=None]
+        if out:
+            calc_results_for_length(out, D, par.expected_event_to_event_mjd)
+        if par.save_mjd_calcs: 
+            fname = 'D'+str(int(D/par.v))+'.npy'
+            outdat = np.array(out)
+            np.save(os.path.join(project_path, 'out', 'out50abc_'+fname), outdat)
 
         out_maxvs = np.array(maxvs)
         if out_maxvs.size>0:
@@ -223,3 +223,7 @@ if __name__ == "__main__":
     f = open(out_path / 'time.dat', 'a')
     f.write(f"\n{(time.time()-time_all_start)/60.} min")
     f.close()
+
+
+    #zropić skrypt do wyświetlania wykresów z plików u out
+    

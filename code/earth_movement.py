@@ -6,11 +6,14 @@ import matplotlib.pyplot as plt
 
 print("========================================================================================")
 
-t = Time(Time.now(), format="mjd")
+t = Time(59000.0, format="mjd")
+#t = Time(Time.now(), format="mjd")
+last_mjd = None
+last_vel = None
+
 omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
 point_on_earth = CartesianRepresentation(0*u.m,  0*u.m,  0*u.m)
 
-#t = Time(59000.0, format="mjd")
 
 def ITRS_to_ICRS(t):
     #=== Koordynaty miejsca na Ziemi w układzie ITRS ===
@@ -19,6 +22,7 @@ def ITRS_to_ICRS(t):
     
     #=== Sprawdzanie czy predkość obrotowa Ziemi jest dobrze liczona ===
     on_earth_velocity = CartesianDifferential(np.cross(omega_vec.to(1/u.s).value, on_earth_itrs.cartesian.xyz.to(u.m).value)*(u.m/u.s))
+    print()
 
     #=== Transformacja położenia do układu ICRS ===
     on_earth_icrs = on_earth_itrs.transform_to(ICRS())
@@ -47,16 +51,11 @@ def ICRS_to_Galactocentric(t):
     t = Time(t, format="mjd")
     on_earth_icrs, r_icrs, v_total_icrs = ITRS_to_ICRS(t)
 
-    # --- tworzymy SkyCoord w ICRS z PRĘDKOŚCIĄ ---
-    coord_icrs = SkyCoord(
-        CartesianRepresentation(
-            on_earth_icrs.cartesian.xyz
-        ).with_differentials(
-            CartesianDifferential(v_total_icrs)
-        ),
-        frame=ICRS(),
-        obstime=t
-    )
+    # --- tworzymy SkyCoord w ICRS z prędkością ---
+    coord_icrs = SkyCoord(CartesianRepresentation(on_earth_icrs.cartesian.xyz).with_differentials(CartesianDifferential(v_total_icrs)),frame=ICRS(),obstime=t)
+    #print()
+    #print("======>", coord_icrs)
+    #print()
 
     # --- transformacja do Galactocentric ---
     coord_gal = coord_icrs.transform_to(Galactocentric())
@@ -83,6 +82,17 @@ def earth_velocity(mjd):
     #return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
     return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
 
+def earth_velocity_fast(mjd):
+    if int(mjd) == last_mjd:
+        int_mjd = last_mjd
+        int_vel = last_vel
+    else:
+        int_mjd = int(mjd)
+        int_vel = ICRS_to_Galactocentric(int(mjd))[1].to(u.m/u.s)
+        last_mjd = int_mjd
+        last_vel = int_vel
+
+        #posprawdzać co to robi
 
 if __name__ == "__main__":
     print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t)[0].to(u.pc), ICRS_to_Galactocentric(t)[1].to(u.km/u.s))
