@@ -4,6 +4,10 @@ import astropy.units as u
 import numpy as np
 import matplotlib.pyplot as plt
 
+OMEGA_EARTH = 7.2921150e-5 / u.s
+
+_velocity_cache = {}
+
 print("========================================================================================")
 
 t = Time(Time.now(), format="mjd")
@@ -75,6 +79,60 @@ def earth_velocity(mjd):
     return ICRS_to_Galactocentric(mjd)[1].to(u.m/u.s)
 
 
+
+
+
+def rotation_z(angle_rad):
+    c = np.cos(angle_rad)
+    s = np.sin(angle_rad)
+
+    return np.array([
+        [c, -s, 0],
+        [s,  c, 0],
+        [0,  0, 1],
+    ])
+
+
+def earth_velocity_fast(mjd):
+    """
+    Szybsza wersja earth_velocity().
+
+    Dla MJD = N + f:
+      1. liczy dokładnie earth_velocity(N) tylko raz,
+      2. zapamiętuje wynik,
+      3. dla kolejnych wywołań obraca wektor o czas f dni.
+    """
+
+    mjd0 = int(np.floor(mjd))
+    frac = mjd - mjd0
+
+    if mjd0 not in _velocity_cache:
+        _velocity_cache[mjd0] = earth_velocity(mjd0)
+
+    v0 = _velocity_cache[mjd0]
+
+    dt = frac * u.day
+    angle = (OMEGA_EARTH * dt).to_value(u.rad)
+
+    R = rotation_z(angle)
+
+    v_rot = R @ v0.to_value(u.m / u.s)
+
+    return v_rot * (u.m / u.s)
+
+
 if __name__ == "__main__":
-    print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t)[0].to(u.pc), ICRS_to_Galactocentric(t)[1].to(u.km/u.s))
-    print("Norma prędkości w Galactocentric:", np.linalg.norm(ICRS_to_Galactocentric(t)[1].to_value(u.km/u.s)) * u.km/u.s)
+    mjd = 59000
+    # print("Położenie i prędkość w Galactocentric:", ICRS_to_Galactocentric(t)[0].to(u.pc), ICRS_to_Galactocentric(t)[1].to(u.km/u.s))
+    # print("Norma prędkości w Galactocentric:", np.linalg.norm(ICRS_to_Galactocentric(t)[1].to_value(u.km/u.s)) * u.km/u.s)
+    print(earth_velocity(59000).to(u.km/u.s))
+    print(earth_velocity_fast(59000).to(u.km/u.s))
+
+    print(earth_velocity(59000.5).to(u.km/u.s))
+    print(earth_velocity_fast(59000.5).to(u.km/u.s))
+
+    print(earth_velocity(59001).to(u.km/u.s))
+    print(earth_velocity_fast(59001).to(u.km/u.s))
+
+    print(earth_velocity(59001.5).to(u.km/u.s))
+    print(earth_velocity_fast(59001.5).to(u.km/u.s))
