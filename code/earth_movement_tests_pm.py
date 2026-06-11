@@ -4,36 +4,25 @@ import astropy.units as u
 import numpy as np
 import matplotlib.pyplot as plt
 
-print("========================================================================================")
+OMEGA_EARTH = 7.2921150e-5 / u.s
+_velocity_cache = {}
 
 t = Time(Time.now(), format="mjd")
 omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
-point_on_earth = CartesianRepresentation(0*u.m,  0*u.m,  0*u.m)
 
-#t = Time(59000.0, format="mjd")
-
-def ITRS_to_ICRS(t):
+def ITRS_to_ICRS(t, point_on_earth):
     #=== Koordynaty miejsca na Ziemi w układzie ITRS ===
     on_earth_itrs = SkyCoord(point_on_earth, frame=ITRS(obstime=t))
-    # print("on_earth_itrs:", on_earth_itrs)
     
     #=== Sprawdzanie czy predkość obrotowa Ziemi jest dobrze liczona ===
-    # ta zmienna nigdzie nie jest używana - ten fragment można chyba usunąć
     on_earth_velocity = CartesianDifferential(np.cross(omega_vec.to(1/u.s).value, on_earth_itrs.cartesian.xyz.to(u.m).value)*(u.m/u.s))
-    # print("on_earth_velocity:", on_earth_velocity)
 
     #=== Transformacja położenia do układu ICRS ===
     on_earth_icrs = on_earth_itrs.transform_to(ICRS())
-    # print("on_earth_icrs:", on_earth_icrs)
 
     #=== Koordynaty i prędkości Ziemi w układzie ICRS ===
     pos_e, vel_e = get_body_barycentric_posvel("earth", t)
-    print("---")
-    print("pos_e:", pos_e)
-    print("vel_e:", vel_e)
     earth_icrs = SkyCoord(CartesianRepresentation(pos_e.xyz).with_differentials(CartesianDifferential(vel_e.xyz)),frame=ICRS(),obstime=t)
-    print("^^^")
-    print("earth_icrs:", earth_icrs)
     #cr = CartesianRepresentation(pos_e.xyz).with_differentials(CartesianDifferential(vel_e.xyz))
     #earth_icrs = SkyCoord(cr, frame=ICRS(), obstime=t)
 
@@ -45,14 +34,12 @@ def ITRS_to_ICRS(t):
     v_earth_icrs = vel_e.xyz.to(u.m/u.s)
     v_total_icrs = v_earth_icrs + v_rot_icrs
 
-
     return on_earth_icrs, r_icrs, v_total_icrs
 
 
-
-def ICRS_to_Galactocentric(t):
+def ITRS_to_Galactocentric(t, point_on_earth):
     # --- bierzemy wynik z pierwszej funkcji ---
-    on_earth_icrs, r_icrs, v_total_icrs = ITRS_to_ICRS(t)
+    on_earth_icrs, r_icrs, v_total_icrs = ITRS_to_ICRS(t, point_on_earth)
 
     # --- tworzymy SkyCoord w ICRS z PRĘDKOŚCIĄ ---
     coord_icrs = SkyCoord(
@@ -72,204 +59,166 @@ def ICRS_to_Galactocentric(t):
     pos_gal = coord_gal.cartesian.xyz
     vel_gal = coord_gal.velocity.d_xyz
     
-
     return pos_gal, vel_gal
 
 
-
-def earth_velocity(mjd):
-    """
-    Calculate Earth's velocity in Galactocentric frame for given MJD.
-    """
-    _mjd = Time(mjd, format="mjd")
-    return ICRS_to_Galactocentric(_mjd)[1].to(u.m/u.s)
-
-def earth_velocity_pm(mjd):
-    _mjd = Time(mjd, format="mjd")
-    return earth_icrs_velocity_pm(_mjd).velocity.d_xyz.to(u.m/u.s)
-
-
-def earth_icrs_velocity_pm(t):
-
-    # położenie i prędkość środka Ziemi
-    pos_e, vel_e = get_body_barycentric_posvel("earth", t)
-
-    earth_icrs = SkyCoord(
-        CartesianRepresentation(pos_e.xyz).with_differentials(
-            CartesianDifferential(vel_e.xyz)
-        ),
-        frame=ICRS(),
-        obstime=t
-    )
-    print("earth_icrs:", earth_icrs)
-
-    return earth_icrs
-
-from astropy.coordinates import (
-    SkyCoord,
-    Galactocentric,
-    ITRS,
-    CartesianRepresentation
-)
-
-import astropy.units as u
-import numpy as np
-
-def gal_velocity_direction_to_icrs(pos_gal, vel_gal):
-    """
-    Zamienia kierunek prędkości z Galactocentric na kierunek w ICRS.
-    """
-
-    speed = np.linalg.norm(vel_gal.to_value(u.km/u.s)) * u.km/u.s
-    n_gal = vel_gal / speed
-
-    eps = 1.0 * u.pc
-
-    p0_gal = SkyCoord(
-        CartesianRepresentation(pos_gal),
-        frame=Galactocentric()
-    )
-
-    p1_gal = SkyCoord(
-        CartesianRepresentation(pos_gal + eps * n_gal),
-        frame=Galactocentric()
-    )
-
-    p0_icrs = p0_gal.transform_to(ICRS()).cartesian.xyz
-    p1_icrs = p1_gal.transform_to(ICRS()).cartesian.xyz
-
-    n_icrs = p1_icrs - p0_icrs
-    n_icrs = n_icrs / np.linalg.norm(n_icrs.to_value())
-
-    return n_icrs, speed
-
-
-def normalize_quantity_vector(v):
-    """
-    Zwraca bezwymiarowy jednostkowy wektor numpy.
-    """
-    v_val = v.to_value(v.unit)
-    return v_val / np.linalg.norm(v_val)
-
-
-def gal_velocity_direction_to_icrs(pos_gal, vel_gal):
-    speed = np.linalg.norm(vel_gal.to_value(u.km/u.s)) * u.km/u.s
-
-    n_gal = vel_gal / speed
-
-    eps = 1.0 * u.pc
-
-    p0_gal = SkyCoord(
-        CartesianRepresentation(pos_gal),
-        frame=Galactocentric()
-    )
-
-    p1_gal = SkyCoord(
-        CartesianRepresentation(pos_gal + eps * n_gal),
-        frame=Galactocentric()
-    )
-
-    p0_icrs = p0_gal.transform_to(ICRS()).cartesian.xyz
-    p1_icrs = p1_gal.transform_to(ICRS()).cartesian.xyz
-
-    n_icrs_vec = p1_icrs - p0_icrs
-
-    # ważne: bezwymiarowy numpy array
-    n_icrs = normalize_quantity_vector(n_icrs_vec)
-
-    return n_icrs, speed
-
-
-def icrs_direction_to_itrs(n_icrs, t):
-    """
-    n_icrs: bezwymiarowy wektor numpy, np. array([nx, ny, nz])
-    """
-    if not isinstance(t, Time):
-        t = Time(t, format="mjd")
-
-    eps = 1.0 * u.pc
-
-    p0_icrs = SkyCoord(
-        CartesianRepresentation([0, 0, 0] * u.pc),
-        frame=ICRS()
-    )
-
-    p1_icrs = SkyCoord(
-        CartesianRepresentation(eps * n_icrs),
-        frame=ICRS()
-    )
-
-    p0_itrs = p0_icrs.transform_to(ITRS(obstime=t)).cartesian.xyz
-    p1_itrs = p1_icrs.transform_to(ITRS(obstime=t)).cartesian.xyz
-
-    n_itrs_vec = p1_itrs - p0_itrs
-
-    # znowu robimy bezwymiarowy kierunek
-    n_itrs = normalize_quantity_vector(n_itrs_vec)
-
-    return n_itrs
-
-def vel(mjd):
-    _mjd = Time(mjd, format="mjd")
-    pos_gal, vel_gal = ICRS_to_Galactocentric(_mjd)
-    n_icrs, speed = gal_velocity_direction_to_icrs(pos_gal, vel_gal)
-    n_itrs = icrs_direction_to_itrs(n_icrs, _mjd)
-    print("n_itrs:", n_itrs)
-    print("speed:", speed)
-    return n_itrs * speed
-
-
-
-OMEGA_EARTH = 7.2921150e-5  # rad/s
-
-
-def rotate_z(v, theta):
-    """
-    Obrót wektora wokół osi Z.
-    """
-
-    c = np.cos(theta)
-    s = np.sin(theta)
-
-    x, y, z = v
+def rotation_z(angle_rad):
+    c = np.cos(angle_rad)
+    s = np.sin(angle_rad)
 
     return np.array([
-        c*x + s*y,
-        -s*x + c*y,
-        z
+        [c, -s, 0],
+        [s,  c, 0],
+        [0,  0, 1],
     ])
 
 
-def fast_itrs_direction(mjd, n0_itrs):
+def earth_velocity(mjd, xyz_list=[0, 0, 0]):
     """
-    mjd:
-        dowolny MJD
+    Calculate Earth's velocity in Galactocentric frame for given MJD.
+    """
+    point_on_earth = CartesianRepresentation(*xyz_list) * u.m
+    return ITRS_to_Galactocentric(Time(mjd, format="mjd"), point_on_earth)[1].to(u.m/u.s)
 
-    n0_itrs:
-        kierunek w ITRS policzony dla pełnego MJD
-        np. dla floor(mjd)
 
-    Zwraca:
-        przybliżony kierunek w ITRS
-        uwzględniający tylko obrót Ziemi.
+def earth_velocity_itrs_gpt(
+        mjd, 
+        xyz_list=[6378137, 0, 0],
+        # xyz_list=[0, 0, 0],
+    ):
+    """
+    Prędkość Ziemi względem halo, wyrażona w ITRS.
+    Wynik w m/s.
     """
 
-    mjd0 = np.floor(mjd)
+    t = Time(mjd, format="mjd")
+    point_on_earth = CartesianRepresentation(*xyz_list) * u.m
 
-    # część ułamkowa dnia
-    frac_day = mjd - mjd0
+    pos_gal, v_gal = ITRS_to_Galactocentric(t, point_on_earth)
 
-    # sekundy od początku dnia
-    dt_seconds = frac_day * 86400.0
+    # Duży krok pomocniczy tylko do wyznaczenia kierunku wektora.
+    # To NIE jest ewolucja w czasie, tylko sztuczne przesunięcie przestrzenne.
+    eps_time = 1000.0 * u.s
 
-    # obrót Ziemi
-    theta = OMEGA_EARTH * dt_seconds
+    coord0_gal = SkyCoord(
+        CartesianRepresentation(pos_gal),
+        frame=Galactocentric(),
+        obstime=t,
+    )
 
-    n_rot = rotate_z(n0_itrs, theta)
+    coord1_gal = SkyCoord(
+        CartesianRepresentation(pos_gal + v_gal * eps_time),
+        frame=Galactocentric(),
+        obstime=t,
+    )
 
-    return n_rot / np.linalg.norm(n_rot)
+    coord0_itrs = coord0_gal.transform_to(ITRS(obstime=t))
+    coord1_itrs = coord1_gal.transform_to(ITRS(obstime=t))
+
+    v_itrs = (coord1_itrs.cartesian.xyz - coord0_itrs.cartesian.xyz) / eps_time
+
+    return v_itrs.to(u.m / u.s)
+
+
+def earth_velocity_fast(mjd):
+    """
+    Szybsza wersja earth_velocity().
+
+    Dla MJD = N + f:
+      1. liczy dokładnie earth_velocity(N) tylko raz,
+      2. zapamiętuje wynik,
+      3. dla kolejnych wywołań obraca wektor o czas f dni.
+    """
+
+    mjd0 = int(np.floor(mjd))
+    frac = mjd - mjd0
+
+    if mjd0 not in _velocity_cache:
+        _velocity_cache[mjd0] = earth_velocity_itrs_gpt(mjd0, [0, 0, 0])
+
+    v0 = _velocity_cache[mjd0]
+
+    dt = frac * u.day
+    angle = -(OMEGA_EARTH * dt).decompose().value
+
+    R = rotation_z(angle)
+
+    v_rot = R @ v0.to_value(u.m / u.s)
+
+    return v_rot * (u.m / u.s)
+
+
+def plot_velocity_compare(
+    velocity_functions,
+    mjd_start=60000,
+    mjd_stop=60000.3,
+    step=0.01,
+):
+    fig = plt.figure(figsize=(9, 8))
+    ax = fig.add_subplot(111, projection="3d")
+
+    mjd_values = np.arange(mjd_start, mjd_stop, step)
+
+    linestyles = ["-", "--", "-.", ":"]
+    markers = ["o", "s", "^", "D", "x", "+"]
+
+    for i, velocity_function in enumerate(velocity_functions):
+        xs = []
+        ys = []
+        zs = []
+
+        for mjd in mjd_values:
+            v = velocity_function(mjd).to(u.km / u.s)
+
+            xs.append(v[0].value)
+            ys.append(v[1].value)
+            zs.append(v[2].value)
+
+        function_name = velocity_function.__name__
+
+        ax.plot(
+            xs,
+            ys,
+            zs,
+            linestyle=linestyles[i % len(linestyles)],
+            marker=markers[i % len(markers)],
+            markersize=4,
+            linewidth=2,
+            alpha=0.85,
+            label=function_name,
+        )
+
+        # start
+        ax.scatter(
+            xs[0],
+            ys[0],
+            zs[0],
+            marker="*",
+            s=120,
+            color="black",
+        )
+
+        # stop
+        ax.scatter(
+            xs[-1],
+            ys[-1],
+            zs[-1],
+            marker="X",
+            s=80,
+            color="black",
+        )
+
+    # początek układu
+    ax.scatter(0, 0, 0, marker="+", s=120, color="black")
+
+    ax.set_xlabel("vx [km/s]")
+    ax.set_ylabel("vy [km/s]")
+    ax.set_zlabel("vz [km/s]")
+    ax.set_title("Comparison of velocity vectors in 3D")
+
+    ax.legend(title="Function")
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
-    print("velocity:", vel(59000))
-    print("velocity:", vel(59000.5))
-    
+    plot_velocity_compare(velocity_functions=[earth_velocity_fast, earth_velocity_itrs_gpt, earth_velocity])
