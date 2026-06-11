@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 OMEGA_EARTH = 7.2921150e-5 / u.s
-_velocity_cache = {}
+velocity_cache = {} # zmienna globalna która pamięta obliczone prędkości dla całkowitych części MJD, aby przyspieszyć kolejne wywołania funkcji earth_velocity_fast() dla tych samych całkowitych części MJD.
 
 t = Time(Time.now(), format="mjd")
 omega_vec = [0, 0, 7.2921150e-5] /u.s # Earth's angular velocity
@@ -73,15 +73,15 @@ def rotation_z(angle_rad):
     ])
 
 
-def earth_velocity(mjd, xyz_list=[0, 0, 0]):
-    """
-    Calculate Earth's velocity in Galactocentric frame for given MJD.
-    """
-    point_on_earth = CartesianRepresentation(*xyz_list) * u.m
-    return ITRS_to_Galactocentric(Time(mjd, format="mjd"), point_on_earth)[1].to(u.m/u.s)
+# def earth_velocity(mjd, xyz_list=[0, 0, 0]):
+#     """
+#     Calculate Earth's velocity in Galactocentric frame for given MJD.
+#     """
+#     point_on_earth = CartesianRepresentation(*xyz_list) * u.m
+#     return ITRS_to_Galactocentric(Time(mjd, format="mjd"), point_on_earth)[1].to(u.m/u.s)
 
 
-def earth_velocity_itrs_gpt(
+def earth_velocity(
         mjd, 
         xyz_list=[6378137, 0, 0],
         # xyz_list=[0, 0, 0],
@@ -133,16 +133,28 @@ def earth_velocity_fast(mjd):
     mjd0 = int(np.floor(mjd))
     frac = mjd - mjd0
 
-    if mjd0 not in _velocity_cache:
-        _velocity_cache[mjd0] = earth_velocity_itrs_gpt(mjd0, [0, 0, 0])
+    # Jeśli nie mamy jeszcze prędkości dla całkowitej części MJD, to ją liczymy i zapamiętujemy.
+    # if mjd0 not in _velocity_cache: sprawdza czy mamy już prędkość dla całkowitej części MJD
+    # w słowniku _velocity_cache. 
+    # Jeśli nie, to obliczamy prędkość dla tej całkowitej części MJD i zapisujemy ją w słowniku pod kluczem mjd0.
+    if mjd0 not in velocity_cache:
+        velocity_cache[mjd0] = earth_velocity(mjd0, [0, 0, 0])
 
-    v0 = _velocity_cache[mjd0]
+    # Pobieramy prędkość dla całkowitej części MJD z cache'u z tablicy _velocity_cache.
+    v0 = velocity_cache[mjd0]
 
+    # obliczenie kąta obrotu Ziemi w ciągu czasu frac dni 
     dt = frac * u.day
+    # mnozymy u.day przez frac, aby uzyskać czas w dniach, a następnie mnożymy przez OMEGA_EARTH, aby uzyskać kąt obrotu Ziemi w ciągu tego czasu.
+    # Wynik jest negowany, ponieważ chcemy obrócić wektor w kierunku przeciwnym do ruchu obrotowego Ziemi.
     angle = -(OMEGA_EARTH * dt).decompose().value
 
+    # Tworzymy macierz obrotu wokół osi Z o obliczony kąt. 
+    # Funkcja rotation_z(angle) zwraca macierz obrotu, która obraca wektor o kąt angle wokół osi Z.
     R = rotation_z(angle)
 
+    # Obracamy wektor v0, mnożąc macierz obrotu R przez wektor v0. 
+    # Wynik jest przekształcany z jednostek m/s na m/s, aby zachować spójność jednostek.
     v_rot = R @ v0.to_value(u.m / u.s)
 
     return v_rot * (u.m / u.s)
@@ -151,7 +163,7 @@ def earth_velocity_fast(mjd):
 def plot_velocity_compare(
     velocity_functions,
     mjd_start=60000,
-    mjd_stop=60000.3,
+    mjd_stop=60000.5,
     step=0.01,
 ):
     fig = plt.figure(figsize=(9, 8))
@@ -221,4 +233,4 @@ def plot_velocity_compare(
     plt.show()
 
 if __name__ == "__main__":
-    plot_velocity_compare(velocity_functions=[earth_velocity_fast, earth_velocity_itrs_gpt, earth_velocity])
+    plot_velocity_compare(velocity_functions=[earth_velocity_fast, earth_velocity])
