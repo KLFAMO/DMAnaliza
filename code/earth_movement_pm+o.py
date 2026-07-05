@@ -226,26 +226,55 @@ print('ev =', ev_x, 'evf =', evf_x)'''
 
 
 ev_x, evf_x = [[], []]
+ev_y, evf_y = [[], []]
+ev_z, evf_z = [[], []]
 mjd_values = []
 
+EV, EVF = [[], []]
+
 mjd_start = 60000
-mjd_stop  = 60001
-step = 0.01
+mjd_stop  = 60002.25
+step = 0.25
 
 while mjd_start < mjd_stop:
-    ev = earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[0].value
-    evf = earth_velocity_fast(mjd_start)[0].value
+    evx = earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[0].value
+    evfx = earth_velocity_fast(mjd_start)[0].value
+    evy = earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[1].value
+    evfy = earth_velocity_fast(mjd_start)[1].value
+    evz = earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[2].value
+    evfz = earth_velocity_fast(mjd_start)[2].value
 
-    ev_x.append(ev)
-    evf_x.append(evf)
+    ev = np.sqrt( (earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[0].value)**2 
+                 + (earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[1].value)**2 
+                 + (earth_velocity(mjd_start, xyz_list=[6378137, 0, 0])[2].value)**2 )
+    evf = np.sqrt( (earth_velocity_fast(mjd_start)[0].value)**2
+                  + (earth_velocity_fast(mjd_start)[1].value)**2
+                  + (earth_velocity_fast(mjd_start)[2].value)**2 )
+
+    ev_x.append(evx)
+    evf_x.append(evfx)
+    ev_y.append(evy)
+    evf_y.append(evfy)
+    ev_z.append(evz)
+    evf_z.append(evfz)
+
     mjd_values.append(mjd_start)
+    EV.append(ev)
+    EVF.append(evf)
 
     mjd_start += step
 
 #Function compare earth_velocity vs earth_velocity_fast
+print("========================================")
+with open("tab_v\EV_EVF.txt", "w") as f:
+    f.write("mjd\t\tev_x\tevf_x\tblad_wzg[%]\n")
 
-with open("ev_vs_evf.txt", "w") as f:
-    f.write("mjd\t\tev_x\tevf_x\n")
+    for mjd, ev, evf in zip(mjd_values, EV, EVF):
+        f.write(f"{mjd:.2f}\t{ev:.3f}\t{evf:.3f}\t{100*abs((ev-evf)/ev):.3f}\n")
 
-    for mjd, ev, evf in zip(mjd_values, ev_x, evf_x):
-        f.write(f"{mjd:.2f}\t{ev:.4f}\t{evf:.4f}\n")
+
+with open("tab_v\EV_xyz.txt", "w") as f:
+    f.write("mjd\t\tev_x\tevf_x\t\tblad_wzg_x[%]\t\tev_y\tevf_y\t\tblad_wzg_y[%]\t\tev_z\tevf_z\t\tblad_wzg_z[%]\n")
+
+    for mjd, evx, evfx, evy, evfy, evz, evfz in zip(mjd_values, ev_x, evf_x, ev_y, evf_y, ev_z, evf_z):
+        f.write(f"{mjd:.2f}\t{evx:.3f}\t{evfx:.3f}\t{100*abs((evx-evfx)/evx):.3f}\t{evy:.3f}\t{evfy:.3f}\t{100*abs((evy-evfy)/evy):.3f}\t{evz:.3f}\t{evfz:.3f}\t{100*abs((evz-evfz)/evz):.3f}\n")
