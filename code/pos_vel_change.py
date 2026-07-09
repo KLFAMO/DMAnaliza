@@ -211,29 +211,35 @@ def plot_from_file(krok, mnoznik):
 
     ax.legend()
 
-    set_axes_equal(ax)
+    #set_axes_equal(ax)
 
     plt.show()
 
 
 #plot_from_file(25,40) #krok i mnożnik
 
+from matplotlib.colors import Normalize
+from matplotlib import cm
+
 def plot_scatter():
-    data = np.loadtxt("figures/tabela_v/EV_xyz_pelne.txt", skiprows=1)
+    data = np.loadtxt("figures/tabela_v/EV_xyz_rys2.txt", skiprows=1)
 
     t = data[:,0]
-    x = data[:,1]
-    xf = data[:,2]
-    y = data[:,4]
-    yf = data[:,5]
-    z = data[:,7]
-    zf = data[:,8]
+    x = data[:,1]/1000
+    xf = data[:,2]/1000
+    y = data[:,4]/1000
+    yf = data[:,5]/1000
+    z = data[:,7]/1000
+    zf = data[:,8]/1000
 
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111, projection='3d')
+    #ax2 = fig.add_subplot(111, projection='3d')
+    cmap = cm.winter
+    cmap2 = cm.autumn
 
     # Punkty pokolorowane czasem
-    sc1 = ax.scatter(x, y, z, c=t, cmap='winter', s=8)
+    '''sc1 = ax.scatter(x, y, z, c=t, cmap='winter', s=8)
     sc2 = ax.scatter(xf, yf, zf, c=t, cmap='autumn', s=8)
     
     cbar1 = plt.colorbar(sc1, ax=ax, pad=0.02)
@@ -241,18 +247,41 @@ def plot_scatter():
     cbar1.ax.set_title("velocity", fontsize=10, pad=8)
     cbar2 = plt.colorbar(sc2, ax=ax, pad=0.12)
     cbar2.set_label("mjd")
-    cbar2.ax.set_title("velocity fast", fontsize=10, pad=8)
+    cbar2.ax.set_title("velocity fast", fontsize=10, pad=8)'''
 
-    # Opcjonalnie połącz punkty linią
-    #ax.plot(x, y, z, color='black', linewidth=0.5)
+    norm = Normalize(vmin=t.min(), vmax=t.max())
 
-    #ax.scatter(x, y, z, s=8, label = 'ev')
-    #ax.scatter(xf, yf, zf, s=8, label= 'ev fast')
-    set_axes_equal(ax)
+    for i in range(len(x)):
+        ax.quiver(
+            0, 0, 0,
+            x[i], y[i], z[i],
+            color=cmap(norm(t[i])),
+            linewidth=3
+        )
+        
+        ax.quiver(
+            0, 0, 0,
+            xf[i], yf[i], zf[i],
+            color=cmap2(norm(t[i])),
+            linewidth=1
+        )
 
-    ax.set_xlabel("X [m/s]")
-    ax.set_ylabel("Y [m/s]")
-    ax.set_zlabel("Z [m/s]")
+    #set_axes_equal(ax)
+    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm2 = cm.ScalarMappable(norm=norm, cmap=cmap2)
+    plt.colorbar(sm, ax=ax, label="MJD")
+    plt.colorbar(sm2, ax=ax, label="MJD")
+
+    R = 200  # km/s
+
+    ax.set_xlim(-R, R)
+    ax.set_ylim(-R, R)
+    ax.set_zlim(-R, R)
+    ax.set_box_aspect([1,1,1])
+
+    ax.set_xlabel("X [km/s]")
+    ax.set_ylabel("Y [km/s]")
+    ax.set_zlabel("Z [km/s]")
 
     plt.show()
 
