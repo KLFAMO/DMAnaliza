@@ -1,20 +1,20 @@
+"""
+This code is modification of an_3d.py.
+It uses speed of the Earth in galaxy calculated from earth_movement_tests_pm.py.
+In this simulations we use random generated data with added pulse, which simulates defect in halo.
+"""
 from itertools import chain
-# import sys
 import os
 
 from local_settings import project_path
-# sys.path.append(str(progspath / 'mytools'))
 
-#import tools as tls
 import numpy as np
-# import pickle
 import scipy.optimize as scp
 import time
 import multiprocessing
-# from multiprocessing import shared_memory
 
 import parameters as par
-# from earth_movement import sun_speed_astropy
+from earth_movement_tests_pm import earth_velocity
 from input_data import InputData
 import matplotlib.pyplot as plt
 
