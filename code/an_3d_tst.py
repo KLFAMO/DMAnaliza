@@ -29,7 +29,7 @@ def get_d():
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     # indat.load_data_from_raw_files()
     indat.generate_random_data(from_mjd=58000, to_mjd=58000.005, dt_s=1, mean_val=0, std_val=1)
-    indat.add_pulse(mjd=58000.002, amplitude=14, size=10e6, 
+    indat.add_pulse(mjd=58000.002, amplitude=4, size=5e6, 
                     vec=earth_velocity_fast(58000.0005)/np.linalg.norm(earth_velocity_fast(58000.0005)), 
                     speed=np.linalg.norm(earth_velocity_fast(58000.005)))
     # indat.rm_dc_each()
@@ -185,18 +185,10 @@ if __name__ == "__main__":
 
         # start = time.time()
         params = [{
-                'mjd':mjd,
-                'D':D,
+                'mjd':mjd,  # mjd of defect start
+                'D':D,   # size of defect [m]
                 'v':np.linalg.norm(earth_velocity_fast(mjd)),  # use speed of the Earth in galaxy
                 'vec':earth_velocity_fast(mjd)/np.linalg.norm(earth_velocity_fast(mjd)),  # use direction of the Earth in galaxy
-                'data':d,
-            } for mjd in mjds_chain]
-        
-        paramsm = [{
-                'mjd':mjd,
-                'D':D,
-                'v':np.linalg.norm(earth_velocity_fast(mjd)),  # use speed of the Earth in galaxy
-                'vec':-earth_velocity_fast(mjd)/np.linalg.norm(earth_velocity_fast(mjd)),  # use direction of the Earth in galaxy
                 'data':d,
             } for mjd in mjds_chain]
         
