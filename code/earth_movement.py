@@ -218,8 +218,8 @@ mjd_values = []
 
 EV, EVF = [[], []]
 
-mjd_start = 59000.5
-mjd_stop  = 59001.2
+mjd_start = 59000
+mjd_stop  = 60000
 step = 0.1
 
 while mjd_start < mjd_stop:
@@ -248,18 +248,20 @@ while mjd_start < mjd_stop:
     EV.append(ev)
     EVF.append(evf)
 
+    print(mjd_start)
     mjd_start += step
+
 
 #Function compare earth_velocity vs earth_velocity_fast
 print("========================================")
-with open("figures/tabela_v/EV_EVF_rys2.txt", "w") as f:
+with open("figures/tabela_v/EV_EVF_long.txt", "w") as f:
     f.write("mjd\t\tev_x\tevf_x\tblad_wzg[%]\n")
 
     for mjd, ev, evf in zip(mjd_values, EV, EVF):
         f.write(f"{mjd:.1f}\t{ev:.3f}\t{evf:.3f}\t{100*abs((ev-evf)/ev):.3f}\n")
 
 
-with open("figures/tabela_v/EV_xyz_rys2.txt", "w") as f:
+with open("figures/tabela_v/EV_xyz_long.txt", "w") as f:
     f.write("mjd\t\tev_x\tevf_x\t\tblad_wzg_x[%]\t\tev_y\tevf_y\t\tblad_wzg_y[%]\t\tev_z\tevf_z\t\tblad_wzg_z[%]\n")
 
     for mjd, evx, evfx, evy, evfy, evz, evfz in zip(mjd_values, ev_x, evf_x, ev_y, evf_y, ev_z, evf_z):
