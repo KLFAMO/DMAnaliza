@@ -157,7 +157,7 @@ def earth_velocity_fast(mjd):
     # Wynik jest przekształcany z jednostek m/s na m/s, aby zachować spójność jednostek.
     v_rot = R @ v0.to_value(u.m / u.s)
 
-    return v_rot * (u.m / u.s)
+    return v_rot #* (u.m / u.s)
 
 
 def plot_velocity_compare(

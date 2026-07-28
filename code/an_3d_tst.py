@@ -11,10 +11,9 @@ from local_settings import project_path
 import numpy as np
 import scipy.optimize as scp
 import time
-import multiprocessing
 
 import parameters as par
-from earth_movement_tests_pm import earth_velocity
+from earth_movement_tests_pm import earth_velocity_fast
 from input_data import InputData
 import matplotlib.pyplot as plt
 
@@ -29,10 +28,10 @@ def get_d():
     path = str( project_path / (r'data/d_prepared/') )
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     # indat.load_data_from_raw_files()
-    indat.generate_random_data(from_mjd=58000, to_mjd=58000.1, dt_s=2, mean_val=0, std_val=1)
-    indat.add_pulse(mjd=58000.02, amplitude=2, size=50e6, vec=[1,1,1], speed=par.v)
-    # indat.plot(file_name='indata1.png')
-    # indat.split(min_gap_s=12)
+    indat.generate_random_data(from_mjd=58000, to_mjd=58000.005, dt_s=1, mean_val=0, std_val=1)
+    indat.add_pulse(mjd=58000.002, amplitude=14, size=10e6, 
+                    vec=earth_velocity_fast(58000.0005)/np.linalg.norm(earth_velocity_fast(58000.0005)), 
+                    speed=np.linalg.norm(earth_velocity_fast(58000.005)))
     # indat.rm_dc_each()
     # indat.high_gauss_filter_each(stddev=350)
     # indat.alphnorm()
@@ -125,8 +124,9 @@ def calc_single(p):
 def calc_for_single_mjd(p):
     global d
     w = calc_single(p)
-    if w!=None:
-        return (p['mjd'], w[0], w[1], w[2], w[3])
+    wm = calc_single({'mjd':p['mjd'], 'D':p['D'], 'v':p['v'], 'vec':-p['vec'], 'data':d})
+    if w!=None and wm!=None:
+        return (p['mjd'], w[0], w[1], wm[0], wm[1])
     else:
         return None
 
@@ -182,36 +182,41 @@ if __name__ == "__main__":
     mjds_chain = list(chain.from_iterable(mjd_ranges))
     
     for D in par.Ds:
-        print('event length [s]: ', D/par.v)
-        for vec in par.vecs:
-            # start = time.time()
-            params = [{
-                    'mjd':mjd,
-                    'D':D,
-                    'v':par.v,
-                    'vec':vec,
-                    'data':d,
-                } for mjd in mjds_chain]
-            if par.use_multiprocessing:
-                with multiprocessing.Pool(processes=par.processes_number) as pool:
-                    out = pool.map(calc_for_single_mjd, params)
-            else:
-                out = [calc_for_single_mjd(p) for p in params]
-            out = [ x for x in out if x!=None]
-            if out:
-                calc_results_for_length(out, D, par.expected_event_to_event_mjd)
-            if par.save_mjd_calcs: 
-                fname = 'D'+str(int(D/par.v))+'_V_'+str(vec[0])+'_'+str(vec[1])+'_'+str(vec[2])+'.npy'
-                outdat = np.array(out)
-                np.save(os.path.join(project_path, 'out', 'out50abc_'+fname), outdat)
 
-        out_maxvs = np.array(maxvs)
-        if out_maxvs.size>0:
-            plt.clf()
-            plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
-            plt.yscale('log')
-            plt.grid()
-            plt.savefig('maxvs_p.png')
+        # start = time.time()
+        params = [{
+                'mjd':mjd,
+                'D':D,
+                'v':np.linalg.norm(earth_velocity_fast(mjd)),  # use speed of the Earth in galaxy
+                'vec':earth_velocity_fast(mjd)/np.linalg.norm(earth_velocity_fast(mjd)),  # use direction of the Earth in galaxy
+                'data':d,
+            } for mjd in mjds_chain]
+        
+        paramsm = [{
+                'mjd':mjd,
+                'D':D,
+                'v':np.linalg.norm(earth_velocity_fast(mjd)),  # use speed of the Earth in galaxy
+                'vec':-earth_velocity_fast(mjd)/np.linalg.norm(earth_velocity_fast(mjd)),  # use direction of the Earth in galaxy
+                'data':d,
+            } for mjd in mjds_chain]
+        
+        out = [calc_for_single_mjd(p) for p in params]
+        out = [ x for x in out if x!=None]
+
+        # if out:
+        #     calc_results_for_length(out, D, par.expected_event_to_event_mjd)
+        # if par.save_mjd_calcs: 
+        #     fname = 'D'+str(int(D/par.v))+'.npy'
+        #     outdat = np.array(out)
+        #     np.save(os.path.join(project_path, 'out', 'out_tst_'+fname), outdat)
+
+        # out_maxvs = np.array(maxvs)
+        # if out_maxvs.size>0:
+        #     plt.clf()
+        #     plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
+        #     plt.yscale('log')
+        #     plt.grid()
+        #     plt.savefig('maxvs_p.png')
     
     # check if ../out exists, if not create it
     out_path = project_path / 'out'
@@ -222,3 +227,17 @@ if __name__ == "__main__":
     f = open(out_path / 'time.dat', 'a')
     f.write(f"\n{(time.time()-time_all_start)/60.} min")
     f.close()
+
+    mjd = [i[0] for i in out]
+    y = [i[1] for i in out]
+    ym = [i[3] for i in out]
+
+    plt.clf()
+    plt.plot(mjd,y, label='v')
+    plt.plot(mjd,ym, label='-v')
+    plt.show()
+
+    contrast = [(i[1]-i[3]) for i in out]
+    plt.clf()
+    plt.plot(mjd,contrast, label='contrast')
+    plt.show()

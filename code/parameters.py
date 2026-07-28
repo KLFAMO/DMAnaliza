@@ -1,21 +1,21 @@
 import numpy as np
 
 # labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
-labs = ['UMK1', 'UMK2', 'NIST', 'SYRTE', 'NICT']
+labs = ['UMK1', 'NIST', 'SYRTE', 'NICT']
 # labs = ['UMK1', 'NIST', 'NICT']
 
 # Coordinates and other info about labs
 # X,Y,Z in meters in ITRF 2014
-inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20}, 
-        'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 20},
-        'NIST': {'col':'blue',  'atom':'171Yb', 'X':-1288363, 'Y':-4721684, 'Z':4078659, 'servo_time_s': 20},
-        'NPLSr':{'col':'cyan',  'atom':'87Sr', 'X':3985500,  'Y':-23625,   'Z':4962941, 'servo_time_s': 20},
-        'NPLYb':{'col':'black', 'atom':'171Yb+', 'X':3985500,  'Y':-23625,   'Z':4962941, 'servo_time_s': 20},
-        'NICT': {'col':'gray',  'atom':'87Sr', 'X':-3941931, 'Y':3368182,  'Z':3702068, 'servo_time_s': 20},
-        'SYRTE':{'col':'brown', 'atom':'87Sr', 'X':4202777,  'Y':171368,   'Z':4778660, 'servo_time_s': 20},
-        'NMIJ' :{'col':'yellow', 'atom':'87Sr', 'X':-3953004,  'Y':3305232,   'Z':3758967, 'servo_time_s': 20},
-        'KRISS':{'col':'brown', 'atom':'171Yb', 'X':-3116663,  'Y':4080538,   'Z':3783681, 'servo_time_s': 20},
-        'PTB':{'col':'brown', 'atom':'87Sr', 'X':3836112,  'Y':708145,   'Z':5046077, 'servo_time_s': 20},
+inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 1}, 
+        'UMK2': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 1},
+        'NIST': {'col':'blue',  'atom':'171Yb', 'X':-1288363, 'Y':-4721684, 'Z':4078659, 'servo_time_s': 1},
+        'NPLSr':{'col':'cyan',  'atom':'87Sr', 'X':3985500,  'Y':-23625,   'Z':4962941, 'servo_time_s': 1},
+        'NPLYb':{'col':'black', 'atom':'171Yb+', 'X':3985500,  'Y':-23625,   'Z':4962941, 'servo_time_s': 1},
+        'NICT': {'col':'gray',  'atom':'87Sr', 'X':-3941931, 'Y':3368182,  'Z':3702068, 'servo_time_s': 1},
+        'SYRTE':{'col':'brown', 'atom':'87Sr', 'X':4202777,  'Y':171368,   'Z':4778660, 'servo_time_s': 1},
+        'NMIJ' :{'col':'yellow', 'atom':'87Sr', 'X':-3953004,  'Y':3305232,   'Z':3758967, 'servo_time_s': 1},
+        'KRISS':{'col':'brown', 'atom':'171Yb', 'X':-3116663,  'Y':4080538,   'Z':3783681, 'servo_time_s': 1},
+        'PTB':{'col':'brown', 'atom':'87Sr', 'X':3836112,  'Y':708145,   'Z':5046077, 'servo_time_s': 1},
 }
 
 # Generate lnum dynamically based on the current labs list
@@ -27,7 +27,7 @@ v = 230000  # m/s   - speed of the Earth in space
 vecs = [ [1,1,1], [1,0,0]] # direction vectors
 
 # Ds = [ 20*v, 50*v, 100*v, 150*v]
-Ds = [ t*v for t in range(12,14)] # sizes in meters
+Ds = [ t*v for t in range(12,13)] # sizes in meters
 
 # which campaigns to analyze
 campaigns = ['c1', 'c2', 'c3']
@@ -50,14 +50,13 @@ mjds_dict_osc ={
 }
 
 mjds_dict_rand = {
-    'c1' : np.arange(58000,58000.1 ,0.00005),
+    'c1' : np.arange(58000-0.002,58000.004 ,0.00001),
 }
 
 mjds_dict = mjds_dict_rand
 
-save_mjd_calcs = False
-
-default_servo_time_s = 30
+save_mjd_calcs = True
+default_servo_time_s = 1
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
 use_multiprocessing = True
