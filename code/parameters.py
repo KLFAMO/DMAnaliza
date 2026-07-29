@@ -1,7 +1,7 @@
 import numpy as np
 
-# labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
-labs = ['UMK1', 'NIST', 'SYRTE', 'NICT']
+labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+# labs = ['UMK1', 'NIST', 'SYRTE', 'NICT']
 # labs = ['UMK1', 'NIST', 'NICT']
 
 # Coordinates and other info about labs

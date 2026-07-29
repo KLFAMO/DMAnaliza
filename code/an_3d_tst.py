@@ -19,23 +19,27 @@ import matplotlib.pyplot as plt
 
 etaum = 0
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
+simulation_noise_std = 1.0
+amplitude = 2
 
 # 0: K, 1: std
 sd = [0]*len(par.labs)
+dd = {}
 
 def get_d():
     """load and prepare data"""
     path = str( project_path / (r'data/d_prepared/') )
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     # indat.load_data_from_raw_files()
-    indat.generate_random_data(from_mjd=58000, to_mjd=58000.005, dt_s=1, mean_val=0, std_val=1)
-    indat.add_pulse(mjd=58000.002, amplitude=4, size=5e6, 
+    indat.generate_random_data(from_mjd=58000, to_mjd=58000.006, dt_s=1, mean_val=0, std_val=simulation_noise_std)
+    indat.add_pulse(mjd=58000.002, amplitude=amplitude, size=5e6, 
                     vec=earth_velocity_fast(58000.0005)/np.linalg.norm(earth_velocity_fast(58000.0005)), 
                     speed=np.linalg.norm(earth_velocity_fast(58000.005)))
     # indat.rm_dc_each()
     # indat.high_gauss_filter_each(stddev=350)
     # indat.alphnorm()
-    indat.plot(file_name='indat2.png')
+    # indat.plot(file_name='indat2.png')
+    dd = indat.get_measurement_data()
     return indat.get_data_dictionary()
 
 def fu(dx,A,sh):
@@ -104,7 +108,7 @@ def calc_single(p):
                     daty.append(s.val_tab())
                     cnt = cnt+1
                     clocks = clocks + (1 << par.lnum[lab])
-                    sd[par.lnum[lab]]=s.std()
+                    # sd[par.lnum[lab]]=s.std()
 
     #if data from at least 3 labs are captured, fit data
     if cnt>=par.min_required_clocks:
@@ -176,6 +180,9 @@ def calc_results_for_length(out, D, length_mjd):
 
 if __name__ == "__main__":
     d = get_d()
+    for lab in par.labs:
+        if lab in d:
+            sd[par.lnum[lab]] = simulation_noise_std
     maxvs = []
     time_all_start = time.time()
     mjd_ranges = list(par.mjds_dict.values())
@@ -195,20 +202,6 @@ if __name__ == "__main__":
         out = [calc_for_single_mjd(p) for p in params]
         out = [ x for x in out if x!=None]
 
-        # if out:
-        #     calc_results_for_length(out, D, par.expected_event_to_event_mjd)
-        # if par.save_mjd_calcs: 
-        #     fname = 'D'+str(int(D/par.v))+'.npy'
-        #     outdat = np.array(out)
-        #     np.save(os.path.join(project_path, 'out', 'out_tst_'+fname), outdat)
-
-        # out_maxvs = np.array(maxvs)
-        # if out_maxvs.size>0:
-        #     plt.clf()
-        #     plt.plot(out_maxvs[:,0],out_maxvs[:,1]*1e-18)
-        #     plt.yscale('log')
-        #     plt.grid()
-        #     plt.savefig('maxvs_p.png')
     
     # check if ../out exists, if not create it
     out_path = project_path / 'out'
@@ -224,12 +217,292 @@ if __name__ == "__main__":
     y = [i[1] for i in out]
     ym = [i[3] for i in out]
 
-    plt.clf()
-    plt.plot(mjd,y, label='v')
-    plt.plot(mjd,ym, label='-v')
-    plt.show()
+    
 
-    contrast = [(i[1]-i[3]) for i in out]
-    plt.clf()
-    plt.plot(mjd,contrast, label='contrast')
+    out_arr = np.asarray(out, dtype=float)
+
+    if out_arr.ndim != 2 or out_arr.shape[1] < 5:
+        raise ValueError(
+            "Nieprawidłowy format out. Oczekiwano kolumn: "
+            "mjd, A_plus, sigma_plus, A_minus, sigma_minus."
+        )
+
+    # ========================================================
+    # Odczytanie wyników analizy
+    # ========================================================
+
+    mjd_scan = out_arr[:, 0]
+
+    A_plus = out_arr[:, 1]
+    sigma_plus = out_arr[:, 2]
+
+    A_minus = out_arr[:, 3]
+    sigma_minus = out_arr[:, 4]
+
+    # ========================================================
+    # Obliczenie rho+ i rho-
+    # ========================================================
+
+    rho_plus = np.full_like(A_plus, np.nan)
+    rho_minus = np.full_like(A_minus, np.nan)
+
+    valid_plus = (
+        np.isfinite(A_plus)
+        & np.isfinite(sigma_plus)
+        & (sigma_plus > 0)
+    )
+
+    valid_minus = (
+        np.isfinite(A_minus)
+        & np.isfinite(sigma_minus)
+        & (sigma_minus > 0)
+    )
+
+    rho_plus[valid_plus] = (
+        A_plus[valid_plus]
+        / sigma_plus[valid_plus]
+    )
+
+    rho_minus[valid_minus] = (
+        A_minus[valid_minus]
+        / sigma_minus[valid_minus]
+    )
+
+    # ========================================================
+    # Kontrast kierunkowy
+    #
+    # Cdir =  1: preferowany kierunek +v
+    # Cdir = -1: preferowany kierunek -v
+    # Cdir =  0: brak wyraźnej preferencji
+    # ========================================================
+
+    rho_plus_sq = rho_plus**2
+    rho_minus_sq = rho_minus**2
+
+    contrast_denominator = (
+        rho_plus_sq + rho_minus_sq
+    )
+
+    Cdir = np.full_like(rho_plus, np.nan)
+
+    valid_contrast = (
+        np.isfinite(contrast_denominator)
+        & (contrast_denominator > 0)
+    )
+
+    Cdir[valid_contrast] = (
+        rho_plus_sq[valid_contrast]
+        - rho_minus_sq[valid_contrast]
+    ) / contrast_denominator[valid_contrast]
+
+    # ========================================================
+    # Korekta czasu analizy
+    #
+    # mjd_scan oznacza początek okna. Funkcja modelowa osiąga
+    # maksimum po około 3 * etaum.
+    # ========================================================
+
+    speed_arr = np.asarray([
+        np.linalg.norm(earth_velocity_fast(t))
+        for t in mjd_scan
+    ])
+
+    etaum_arr = D / speed_arr / 86400
+
+    mjd_result = (
+        mjd_scan + 3 * etaum_arr
+    )
+
+    # ========================================================
+    # Przygotowanie surowych danych
+    # ========================================================
+
+    raw_mjd_by_lab = {}
+
+    for lab in par.labs:
+        if lab in d:
+            lab_mjd = np.asarray(
+                d[lab].mjd_tab(),
+                dtype=float,
+            )
+
+            if lab_mjd.size > 0:
+                raw_mjd_by_lab[lab] = lab_mjd
+
+    if not raw_mjd_by_lab:
+        raise ValueError(
+            "Brak surowych danych do narysowania."
+        )
+
+    # ========================================================
+    # Wyznaczenie wspólnego zakresu czasu
+    #
+    # Pokazujemy tylko zakres, w którym dostępne są zarówno
+    # surowe dane, jak i wyniki analizy.
+    # ========================================================
+
+    raw_mjd_min = min(
+        np.min(lab_mjd)
+        for lab_mjd in raw_mjd_by_lab.values()
+    )
+
+    raw_mjd_max = max(
+        np.max(lab_mjd)
+        for lab_mjd in raw_mjd_by_lab.values()
+    )
+
+    analysis_mjd_min = np.nanmin(mjd_result)
+    analysis_mjd_max = np.nanmax(mjd_result)
+
+    common_start_mjd = max(
+        raw_mjd_min,
+        analysis_mjd_min,
+    )
+
+    common_end_mjd = min(
+        raw_mjd_max,
+        analysis_mjd_max,
+    )
+
+    if common_end_mjd <= common_start_mjd:
+        raise ValueError(
+            "Surowe dane i wyniki analizy nie mają "
+            "wspólnego zakresu czasu."
+        )
+
+    # Czas w sekundach od początku wspólnego zakresu.
+    x_result_s = (
+        mjd_result - common_start_mjd
+    ) * 86400
+
+    duration_s = (
+        common_end_mjd - common_start_mjd
+    ) * 86400
+
+    # ========================================================
+    # Rysowanie trzech paneli
+    # ========================================================
+
+    fig, (ax1, ax2, ax3) = plt.subplots(
+        3,
+        1,
+        sharex=True,
+        figsize=(14, 10),
+        gridspec_kw={
+            'height_ratios': [1.4, 1.0, 1.0],
+        },
+    )
+
+    # --------------------------------------------------------
+    # Panel 1: surowe dane z laboratoriów
+    # --------------------------------------------------------
+
+    for lab, lab_mjd in raw_mjd_by_lab.items():
+        lab_time_s = (
+            lab_mjd - common_start_mjd
+        ) * 86400
+
+        lab_value = np.asarray(
+            d[lab].val_tab()
+        )
+
+        ax1.scatter(
+            lab_time_s,
+            lab_value,
+            s=2,
+            label=lab,
+        )
+
+    ax1.set_ylabel('Sygnał sensora')
+    ax1.set_title(
+        'Surowe, symulowane dane pomiarowe'
+    )
+
+    ax1.legend(
+        ncol=5,
+        fontsize=8,
+        markerscale=3,
+    )
+
+    ax1.grid(alpha=0.25)
+
+    # --------------------------------------------------------
+    # Panel 2: rho+ i rho-
+    # --------------------------------------------------------
+
+    ax2.plot(
+        x_result_s,
+        rho_plus,
+        color='tab:blue',
+        label=r'$\rho_{+}$: kierunek $\mathbf{v}$',
+    )
+
+    ax2.plot(
+        x_result_s,
+        rho_minus,
+        color='tab:orange',
+        label=r'$\rho_{-}$: kierunek $-\mathbf{v}$',
+    )
+
+    ax2.axhline(
+        0,
+        color='black',
+        linewidth=0.7,
+    )
+
+    ax2.set_ylabel(
+        r'$\rho=A/\sigma_A$'
+    )
+
+    ax2.set_title(
+        'Znormalizowane amplitudy dopasowania'
+    )
+
+    ax2.legend()
+    ax2.grid(alpha=0.25)
+
+    # --------------------------------------------------------
+    # Panel 3: kontrast kierunkowy
+    # --------------------------------------------------------
+
+    ax3.plot(
+        x_result_s,
+        Cdir,
+        color='tab:purple',
+        linewidth=1.2,
+        label=r'$C_{\mathrm{dir}}$',
+    )
+
+    ax3.axhline(
+        0,
+        color='black',
+        linewidth=0.7,
+    )
+
+    ax3.set_ylim(-1.05, 1.05)
+    ax3.set_xlim(0, duration_s)
+
+    ax3.set_xlabel(
+        'Czas [s]'
+    )
+
+    ax3.set_ylabel(
+        r'$C_{\mathrm{dir}}$'
+    )
+
+    ax3.set_title(
+        'Kontrast kierunkowy'
+    )
+
+    ax3.legend()
+    ax3.grid(alpha=0.25)
+
+    # Usunięcie dodatkowych marginesów poziomych.
+    for ax in (ax1, ax2, ax3):
+        ax.margins(x=0)
+
+    plt.tight_layout(
+        rect=[0, 0, 1, 0.95]
+    )
+
     plt.show()

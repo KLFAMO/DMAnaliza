@@ -157,3 +157,45 @@ class InputData:
         """
         for lab in self.loaded_labs:
             self.d[lab].add_sin(amplitude=amplitude, omega=omega)
+
+
+    def get_measurement_data(self, labs=None):
+        """
+        Return measurement data for selected labs as NumPy arrays.
+
+        Parameters:
+        labs (iterable[str] or str, optional): Labs to return. If omitted,
+            data for all loaded labs are returned.
+
+        Returns:
+        dict: ``{lab: {'mjd': np.ndarray, 'value': np.ndarray}}``.
+            If an ``MTSerie`` contains several ``TSerie`` objects, their data
+            are concatenated and sorted by MJD.
+
+        Example:
+            data = indat.get_measurement_data(['UMK', 'PTB'])
+            for lab, series in data.items():
+                plt.plot(series['mjd'], series['value'], label=lab)
+            plt.legend()
+        """
+        if labs is None:
+            labs = list(dict.fromkeys(self.loaded_labs))
+        elif isinstance(labs, str):
+            labs = [labs]
+        else:
+            labs = list(labs)
+
+        unknown_labs = [lab for lab in labs if lab not in self.d]
+        if unknown_labs:
+            raise KeyError(
+                f"No data loaded for labs: {unknown_labs}. "
+                f"Available labs: {list(self.d)}"
+            )
+
+        result = {}
+        for lab in labs:
+            mts = self.d[lab]
+
+            result[lab] = {'mjd': mts.mjd_tab(), 'value': mts.val_tab()}
+
+        return result
