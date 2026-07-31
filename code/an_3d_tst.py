@@ -19,8 +19,9 @@ import matplotlib.pyplot as plt
 
 etaum = 0
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
-simulation_noise_std = 1.0
-amplitude = 2
+simulation_noise_std = 1.0  #  <<<<<<  poziom szumu  
+amplitude = 2               #  <<<<<<  amplituda impulsu
+mjd_imp = 58000.002  #  <<<<<<  moment pojawienia się impulsu
 
 # 0: K, 1: std
 sd = [0]*len(par.labs)
@@ -32,9 +33,11 @@ def get_d():
     indat = InputData(campaigns=par.campaigns, labs=par.labs, inf=par.inf, path=path)
     # indat.load_data_from_raw_files()
     indat.generate_random_data(from_mjd=58000, to_mjd=58000.006, dt_s=1, mean_val=0, std_val=simulation_noise_std)
-    indat.add_pulse(mjd=58000.002, amplitude=amplitude, size=5e6, 
-                    vec=earth_velocity_fast(58000.0005)/np.linalg.norm(earth_velocity_fast(58000.0005)), 
-                    speed=np.linalg.norm(earth_velocity_fast(58000.005)))
+    indat.add_pulse(mjd=mjd_imp, 
+                    amplitude=amplitude, 
+                    size=5e6,                   #<<<<<<<<   rozmiar defektu w metrach 
+                    vec=earth_velocity_fast(mjd_imp)/np.linalg.norm(earth_velocity_fast(mjd_imp)), 
+                    speed=np.linalg.norm(earth_velocity_fast(mjd_imp)))
     # indat.rm_dc_each()
     # indat.high_gauss_filter_each(stddev=350)
     # indat.alphnorm()
