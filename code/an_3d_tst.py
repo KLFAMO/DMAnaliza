@@ -386,13 +386,13 @@ if __name__ == "__main__":
     # Rysowanie trzech paneli
     # ========================================================
 
-    fig, (ax1, ax2, ax3) = plt.subplots(
-        3,
+    fig, (ax1, ax2) = plt.subplots(
+        2,
         1,
         sharex=True,
         figsize=(14, 10),
         gridspec_kw={
-            'height_ratios': [1.4, 1.0, 1.0],
+            'height_ratios': [1.4, 1.0],
         },
     )
 
@@ -468,40 +468,40 @@ if __name__ == "__main__":
     # Panel 3: kontrast kierunkowy
     # --------------------------------------------------------
 
-    ax3.plot(
-        x_result_s,
-        Cdir,
-        color='tab:purple',
-        linewidth=1.2,
-        label=r'$C_{\mathrm{dir}}$',
-    )
+    # ax3.plot(
+    #     x_result_s,
+    #     Cdir,
+    #     color='tab:purple',
+    #     linewidth=1.2,
+    #     label=r'$C_{\mathrm{dir}}$',
+    # )
 
-    ax3.axhline(
-        0,
-        color='black',
-        linewidth=0.7,
-    )
+    # ax3.axhline(
+    #     0,
+    #     color='black',
+    #     linewidth=0.7,
+    # )
 
-    ax3.set_ylim(-1.05, 1.05)
-    ax3.set_xlim(0, duration_s)
+    # ax3.set_ylim(-1.05, 1.05)
+    # ax3.set_xlim(0, duration_s)
 
-    ax3.set_xlabel(
-        'Czas [s]'
-    )
+    # ax3.set_xlabel(
+    #     'Czas [s]'
+    # )
 
-    ax3.set_ylabel(
-        r'$C_{\mathrm{dir}}$'
-    )
+    # ax3.set_ylabel(
+    #     r'$C_{\mathrm{dir}}$'
+    # )
 
-    ax3.set_title(
-        'Kontrast kierunkowy'
-    )
+    # ax3.set_title(
+    #     'Kontrast kierunkowy'
+    # )
 
-    ax3.legend()
-    ax3.grid(alpha=0.25)
+    # ax3.legend()
+    # ax3.grid(alpha=0.25)
 
     # Usunięcie dodatkowych marginesów poziomych.
-    for ax in (ax1, ax2, ax3):
+    for ax in (ax1, ax2):
         ax.margins(x=0)
 
     plt.tight_layout(
