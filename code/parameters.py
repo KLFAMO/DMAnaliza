@@ -1,8 +1,11 @@
 import numpy as np
 
-labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
+# labs = ['UMK1','UMK2', 'NIST', 'SYRTE', 'NPLSr', 'NPLYb', 'NICT','NMIJ', 'KRISS', 'PTB']
 # labs = ['UMK1', 'NIST', 'SYRTE', 'NICT']
-# labs = ['UMK1', 'NIST', 'NICT']
+labs = ['UMK1', 'NIST', 'NICT']
+# labs = ['UMK1', 'UMK2', 'NIST', 'UMK1n', 'UMK2n', 'NISTn']
+# labs = ['UMK1', 'UMK2', 'UMK3', 'UMK1n', 'UMK2n', 'UMK3n']
+# labs = ['UMK1', 'UMK2', 'UMK3']
 
 # Coordinates and other info about labs
 # X,Y,Z in meters in ITRF 2014
@@ -16,6 +19,11 @@ inf = { 'UMK1': {'col':'green', 'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5
         'NMIJ' :{'col':'yellow', 'atom':'87Sr', 'X':-3953004,  'Y':3305232,   'Z':3758967, 'servo_time_s': 1},
         'KRISS':{'col':'brown', 'atom':'171Yb', 'X':-3116663,  'Y':4080538,   'Z':3783681, 'servo_time_s': 1},
         'PTB':{'col':'brown', 'atom':'87Sr', 'X':3836112,  'Y':708145,   'Z':5046077, 'servo_time_s': 1},
+        'UMK3': {'col':'red',   'atom':'88Sr', 'X':3644273,  'Y':1226649,  'Z':5071736, 'servo_time_s': 1},
+        'UMK1n': {'col':'green', 'atom':'88Sr', 'X':-3644273,  'Y':-1226649,  'Z':-5071736, 'servo_time_s': 1}, 
+        'UMK2n': {'col':'red',   'atom':'88Sr', 'X':-3644273,  'Y':-1226649,  'Z':-5071736, 'servo_time_s': 1},
+        'UMK3n': {'col':'red',   'atom':'88Sr', 'X':-3644273,  'Y':-1226649,  'Z':-5071736, 'servo_time_s': 1},
+        'NISTn': {'col':'blue',  'atom':'171Yb', 'X':1288363, 'Y':4721684, 'Z':-4078659, 'servo_time_s': 1},
 }
 
 # Generate lnum dynamically based on the current labs list
@@ -56,7 +64,7 @@ mjds_dict_rand = {
 mjds_dict = mjds_dict_rand
 
 save_mjd_calcs = True
-default_servo_time_s = 1
+default_servo_time_s = 1e-3
 min_required_clocks = 2
 expected_event_to_event_mjd = 0.1
 use_multiprocessing = True

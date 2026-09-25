@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 etaum = 0
 default_inverse_ts = 1/(par.default_servo_time_s/86400)
-simulation_noise_std = 1.0  #  <<<<<<  poziom szumu  
+simulation_noise_std = 1e0  #  <<<<<<  poziom szumu  
 amplitude = 2               #  <<<<<<  amplituda impulsu
 mjd_imp = 58000.002  #  <<<<<<  moment pojawienia się impulsu
 
@@ -35,7 +35,7 @@ def get_d():
     indat.generate_random_data(from_mjd=58000, to_mjd=58000.006, dt_s=1, mean_val=0, std_val=simulation_noise_std)
     indat.add_pulse(mjd=mjd_imp, 
                     amplitude=amplitude, 
-                    size=5e6,                   #<<<<<<<<   rozmiar defektu w metrach 
+                    size=40e6,                   #<<<<<<<<   rozmiar defektu w metrach 
                     vec=earth_velocity_fast(mjd_imp)/np.linalg.norm(earth_velocity_fast(mjd_imp)), 
                     speed=np.linalg.norm(earth_velocity_fast(mjd_imp)))
     # indat.rm_dc_each()
@@ -105,7 +105,7 @@ def calc_single(p):
             #if data exist, add and make inital calculations
             if s != None and len(s.dtab)==1:
                 if s.dtab[0].mjd_tab[-1]-s.dtab[0].mjd_tab[0] >= 0.95*durm:
-                    s.rm_drift_each()
+                    # s.rm_drift_each()
                     #s.plot()
                     datx.append(s.mjd_tab() - (mjd+shmjd) + par.lnum[lab])
                     daty.append(s.val_tab())
@@ -119,8 +119,12 @@ def calc_single(p):
         daty = np.concatenate(daty)
         sig = sigf(datx)
         try:
-            popt, pcov = scp.curve_fit(fu, datx, daty,  
-                        sigma=sig, absolute_sigma=True )
+            popt, pcov = scp.curve_fit(
+                fu,
+                datx, daty,  
+                p0=[1.0, 0.0],
+                bounds=([-np.inf, -1e-6], [np.inf, 1e-6]),
+                sigma=sig, absolute_sigma=True )
         except:
             return None
         return [popt[0], pcov[0,0]**0.5, pcov[1,1]**0.5, clocks]
@@ -263,12 +267,12 @@ if __name__ == "__main__":
 
     rho_plus[valid_plus] = (
         A_plus[valid_plus]
-        / sigma_plus[valid_plus]
+        # / sigma_plus[valid_plus]
     )
 
     rho_minus[valid_minus] = (
         A_minus[valid_minus]
-        / sigma_minus[valid_minus]
+        # / sigma_minus[valid_minus]
     )
 
     # ========================================================
@@ -390,9 +394,9 @@ if __name__ == "__main__":
         2,
         1,
         sharex=True,
-        figsize=(14, 10),
+        figsize=(10, 10),
         gridspec_kw={
-            'height_ratios': [1.4, 1.0],
+            'height_ratios': [1.0, 1.0],
         },
     )
 
@@ -437,14 +441,14 @@ if __name__ == "__main__":
         x_result_s,
         rho_plus,
         color='tab:blue',
-        label=r'$\rho_{+}$: kierunek $\mathbf{v}$',
+        label=r'$A_{+}$: kierunek $\mathbf{v}$',
     )
 
     ax2.plot(
         x_result_s,
         rho_minus,
         color='tab:orange',
-        label=r'$\rho_{-}$: kierunek $-\mathbf{v}$',
+        label=r'$A_{-}$: kierunek $-\mathbf{v}$',
     )
 
     ax2.axhline(
@@ -454,7 +458,7 @@ if __name__ == "__main__":
     )
 
     ax2.set_ylabel(
-        r'$\rho=A/\sigma_A$'
+        r'$A$'
     )
 
     ax2.set_title(
