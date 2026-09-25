@@ -462,8 +462,9 @@ if __name__ == "__main__":
     )
 
     ax2.set_title(
-        'Znormalizowane amplitudy dopasowania'
+        'Amplitudy dopasowania'
     )
+    ax2.set_xlabel('Czas [s]')
 
     ax2.legend()
     ax2.grid(alpha=0.25)
